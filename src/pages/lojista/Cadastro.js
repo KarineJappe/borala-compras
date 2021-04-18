@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
     StyleSheet,
     View,
@@ -7,15 +7,27 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import GradientButton from '../../utils/gradientButton';
+import {createUsuario} from '../../services/usuario';
 
 
-export default function Categorias(){
+export default function Cadastro(){
+    const [email, setEmail] = useState ("");
+    const [senha, setSenha] = useState ("");
+
+    const handleRegistrar = async () => {
+        const {data} = await createUsuario({email, senha});
+        console.log(data);
+    };
+
+    const handleEmail = (email) =>{
+        setEmail(email)
+    };
+    const handleSenha = (senha) =>{
+        setSenha(senha)
+    };
+
     return(
         <View style={styles.container}>
-            <TextInput
-                style={styles.button} 
-                placeholder="Cnpj"
-            />
             <TextInput 
                 style={styles.button} 
                 placeholder="Razão Social"
@@ -23,6 +35,12 @@ export default function Categorias(){
             <TextInput 
                 style={styles.button} 
                 placeholder="Nome Fantasia"
+                name="nome_fantasia"
+            />
+            <TextInput
+                style={styles.button} 
+                placeholder="Cnpj" 
+                name="cnpj"
             />
             <TextInput 
                 style={styles.button} 
@@ -35,9 +53,18 @@ export default function Categorias(){
             <TextInput 
                 style={styles.button} 
                 placeholder="Email"
+                onChangeText={handleEmail}
+                value={email}
             />
+            <TextInput 
+                style={styles.button} 
+                placeholder="Senha"
+                onChangeText={handleSenha}
+                value={senha}
+            />
+        
             <GradientButton>
-                <TouchableOpacity>
+                <TouchableOpacity onPress = {handleRegistrar}>
                     <Text style={styles.buttonEntrar}>
                         Registrar
                     </Text>
@@ -46,7 +73,7 @@ export default function Categorias(){
         </View>
 
     );
-}
+};
 
 const styles = StyleSheet.create({
     container: {

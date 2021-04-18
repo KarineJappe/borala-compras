@@ -4,8 +4,16 @@ import {
     Text,
     View,
 } from 'react-native';
+import {getUsuario} from '../../services/usuario';
 
 export default function Categorias(){
+    
+    const load = async () => {
+        const { data } = await getUsuario();
+        console.log(data);
+    }
+    load(); 
+
     return(
         <>
         <View style={styles.card}>
