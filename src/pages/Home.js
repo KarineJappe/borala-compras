@@ -7,7 +7,7 @@ import {
     Image,
 } from 'react-native';
 
-const Home = ({navigation}) => {
+const Home = ({ navigation }) => {
     return (
         <Gradient>
             <Image
@@ -15,13 +15,13 @@ const Home = ({navigation}) => {
                 source={require('../assets/img/Logo.png')}
             />
 
-            <TouchableOpacity onPress={()=> navigation.navigate('Login')}>
+            <TouchableOpacity onPress={() => navigation.navigate('AuthLoading')}>
                 <Text style={styles.button}>
                     Lojista
                 </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={()=> navigation.navigate('Categorias')}>
+            <TouchableOpacity onPress={() => navigation.navigate('Categorias')}>
                 <Text style={styles.button}>
                     Cliente
                 </Text>

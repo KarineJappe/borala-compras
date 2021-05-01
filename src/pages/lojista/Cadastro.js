@@ -7,65 +7,84 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import GradientButton from '../../utils/gradientButton';
-import {createUsuario} from '../../services/usuario';
+import {register} from '../../services/usuario';
+import {registrarEstabelecimento} from '../../services/estabelecimento';
 
 
-export default function Cadastro(){
+export default function Cadastro({navigation}){
+    //States do Usuário
     const [email, setEmail] = useState ("");
-    const [senha, setSenha] = useState ("");
+    const [password, setpassword] = useState ("");
+
+    //States do estabelecimento.
+    const [razao_social, setRazao_social] = useState ("");
+    const [nome_fantasia, setNome_fantasia] = useState ("");
+    const [cnpj, setCnpj] = useState ("");
+    const [endereco, setEndereco] = useState ("");
+    const [telefone, setTelefone] = useState ("");
+
 
     const handleRegistrar = async () => {
-        const {data} = await createUsuario({email, senha});
-        console.log(data);
-    };
+        const resUsuario = await register({email, password});
 
-    const handleEmail = (email) =>{
-        setEmail(email)
-    };
-    const handleSenha = (senha) =>{
-        setSenha(senha)
+        if(resUsuario.status === 201){
+            const id_user = resUsuario.data.user.id;
+
+            const {data} = await registrarEstabelecimento({razao_social, nome_fantasia, cnpj, endereco, telefone, id_user});
+            // console.log(data);
+        }
     };
 
     return(
         <View style={styles.container}>
+
             <TextInput 
                 style={styles.button} 
                 placeholder="Razão Social"
+                value={razao_social}
+                onChangeText={razao_social => setRazao_social(razao_social)}
             />
             <TextInput 
                 style={styles.button} 
                 placeholder="Nome Fantasia"
-                name="nome_fantasia"
+                value={nome_fantasia}
+                onChangeText={nome_fantasia => setNome_fantasia(nome_fantasia)}
             />
             <TextInput
                 style={styles.button} 
                 placeholder="Cnpj" 
-                name="cnpj"
+                value={cnpj}
+                onChangeText={cnpj => setCnpj(cnpj)}
             />
             <TextInput 
                 style={styles.button} 
                 placeholder="Endereço"
+                value={endereco}
+                onChangeText={endereco => setEndereco(endereco)}
             />
             <TextInput 
                 style={styles.button} 
                 placeholder="Telefone"
+                value={telefone}
+                onChangeText={telefone => setTelefone(telefone)}
             />
             <TextInput 
                 style={styles.button} 
                 placeholder="Email"
-                onChangeText={handleEmail}
+                onChangeText={email => setEmail(email)}
                 value={email}
             />
             <TextInput 
                 style={styles.button} 
-                placeholder="Senha"
-                onChangeText={handleSenha}
-                value={senha}
+                placeholder="password"
+                onChangeText={password => setpassword(password)}
+                value={password}
             />
         
-            <GradientButton>
-                <TouchableOpacity onPress = {handleRegistrar}>
-                    <Text style={styles.buttonEntrar}>
+            <GradientButton buttonStyle={styles.buttonEntrar}>
+                {/* <TouchableOpacity onPress = {handleRegistrar}> */}
+                <TouchableOpacity onPress = {() => navigation.navigate('Produtos')}>
+                    <Text style={styles.registrar}>
                         Registrar
                     </Text>
                 </TouchableOpacity>
@@ -94,8 +113,18 @@ const styles = StyleSheet.create({
         textAlign: 'left',
         fontSize: 15
     },
-    buttonEntrar:{
+    registrar:{
         fontFamily: 'Poppins-Regular',
         fontSize: 22
-    }
+    },
+    buttonEntrar: {
+        padding: 10,
+        borderRadius: 10,
+        width: 150,
+        height: 55,
+        marginTop: 20,
+        color: 'black',
+        alignItems: 'center',
+    },
+    
 });
