@@ -1,76 +1,133 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
     StyleSheet,
     View,
     Text,
     TextInput,
     TouchableOpacity,
+    KeyboardAvoidingView,
 } from 'react-native';
+import { CommonActions } from '@react-navigation/native';
 import GradientButton from '../../utils/gradientButton';
-import {createUsuario} from '../../services/usuario';
+import { register } from '../../services/usuario';
+import { registrarEstabelecimento, editarEstabelecimento } from '../../services/estabelecimento';
+import { editarProduto } from '../../services/produto';
 
+export default function Cadastro({ route, navigation }) {
+    const estabelecimento = route.params?.estabelecimento || false;
+    const user = route.params?.user || false;
 
-export default function Cadastro(){
-    const [email, setEmail] = useState ("");
-    const [senha, setSenha] = useState ("");
+    //States do Usuário
+    const [email, setEmail] = useState(user ? user.email : "");
+    const [password, setpassword] = useState("");
+
+    //States do estabelecimento.
+    const [razao_social, setRazao_social] = useState(estabelecimento ? estabelecimento.razao_social : "");
+    const [nome_fantasia, setNome_fantasia] = useState(estabelecimento ? estabelecimento.nome_fantasia : "");
+    const [cnpj, setCnpj] = useState(estabelecimento ? estabelecimento.cnpj : "");
+    const [endereco, setEndereco] = useState(estabelecimento ? estabelecimento.endereco : "");
+    const [telefone, setTelefone] = useState(estabelecimento ? estabelecimento.telefone : "");
 
     const handleRegistrar = async () => {
-        const {data} = await createUsuario({email, senha});
-        console.log(data);
+        if (estabelecimento) {
+            await editarEstabelecimento(estabelecimento.id, {
+                razao_social,
+                nome_fantasia,
+                cnpj,
+                endereco,
+                telefone
+            });
+            await editarProduto(user.id, {
+                email,
+                password
+            })
+        } else {
+            const resUsuario = await register({ email, password });
+            if (resUsuario.status === 201) {
+                const id_user = resUsuario.data.user.id;
+                const { data } = await registrarEstabelecimento({
+                    razao_social,
+                    nome_fantasia,
+                    cnpj,
+                    endereco,
+                    telefone,
+                    id_user
+                });
+                console.log(data);
+            }
+        };
+        navigation.dispatch(
+            CommonActions.navigate({
+                name: 'Produtos',
+                params: {
+                    user: id_user
+                },
+            })
+        );
     };
 
-    const handleEmail = (email) =>{
-        setEmail(email)
-    };
-    const handleSenha = (senha) =>{
-        setSenha(senha)
-    };
+    return (
+        <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
 
-    return(
-        <View style={styles.container}>
-            <TextInput 
-                style={styles.button} 
-                placeholder="Razão Social"
-            />
-            <TextInput 
-                style={styles.button} 
-                placeholder="Nome Fantasia"
-                name="nome_fantasia"
-            />
-            <TextInput
-                style={styles.button} 
-                placeholder="Cnpj" 
-                name="cnpj"
-            />
-            <TextInput 
-                style={styles.button} 
-                placeholder="Endereço"
-            />
-            <TextInput 
-                style={styles.button} 
-                placeholder="Telefone"
-            />
-            <TextInput 
-                style={styles.button} 
-                placeholder="Email"
-                onChangeText={handleEmail}
-                value={email}
-            />
-            <TextInput 
-                style={styles.button} 
-                placeholder="Senha"
-                onChangeText={handleSenha}
-                value={senha}
-            />
-        
-            <GradientButton>
-                <TouchableOpacity onPress = {handleRegistrar}>
-                    <Text style={styles.buttonEntrar}>
-                        Registrar
+            <View style={styles.container}>
+
+                <TextInput
+                    style={styles.button}
+                    placeholder="Razão Social"
+                    value={razao_social}
+                    onChangeText={razao_social => setRazao_social(razao_social)}
+                />
+                <TextInput
+                    style={styles.button}
+                    placeholder="Nome Fantasia"
+                    value={nome_fantasia}
+                    onChangeText={nome_fantasia => setNome_fantasia(nome_fantasia)}
+                />
+                <TextInput
+                    style={styles.button}
+                    placeholder="Cnpj"
+                    value={cnpj}
+                    onChangeText={cnpj => setCnpj(cnpj)}
+                />
+                <TextInput
+                    style={styles.button}
+                    placeholder="Endereço"
+                    value={endereco}
+                    onChangeText={endereco => setEndereco(endereco)}
+                />
+                <TextInput
+                    style={styles.button}
+                    placeholder="Telefone"
+                    value={telefone}
+                    onChangeText={telefone => setTelefone(telefone)}
+                />
+                <TextInput
+                    style={styles.button}
+                    placeholder="Email"
+                    value={email}
+                    onChangeText={email => setEmail(email)}
+                />
+                <TextInput
+                    style={styles.button}
+                    placeholder="password"
+                    value={password}
+                    onChangeText={password => setpassword(password)}
+                    secureTextEntry={true}
+                />
+
+                <GradientButton buttonStyle={styles.buttonEntrar}>
+                    <TouchableOpacity onPress={handleRegistrar}>
+                        {/* <TouchableOpacity onPress = {() => navigation.navigate('Produtos')}> */}
+                        <Text style={styles.registrar}>
+                            Registrar
                     </Text>
-                </TouchableOpacity>
-            </GradientButton>
-        </View>
+                    </TouchableOpacity>
+                </GradientButton>
+            </View>
+        </KeyboardAvoidingView>
 
     );
 };
@@ -94,8 +151,18 @@ const styles = StyleSheet.create({
         textAlign: 'left',
         fontSize: 15
     },
-    buttonEntrar:{
+    registrar: {
         fontFamily: 'Poppins-Regular',
         fontSize: 22
-    }
+    },
+    buttonEntrar: {
+        padding: 10,
+        borderRadius: 10,
+        width: 150,
+        height: 55,
+        marginTop: 20,
+        color: 'black',
+        alignItems: 'center',
+    },
+
 });
