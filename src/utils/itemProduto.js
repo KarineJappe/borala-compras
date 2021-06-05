@@ -8,13 +8,27 @@ import {
 } from 'react-native'
 import GradientButton from './gradientButton';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { deleteProduto } from '../services/produto';
+
+export default function ItemProduto({ produto, carregaProdutos, navegar }) {
+
+    const handleExcluir = async () => {
+        const { data } = await deleteProduto(produto.id);
+        carregaProdutos();
+        // console.log(data);
+    };
+
+    const handleEditar = async () => {
+        navegar.navigate('Cadastro Produto', {
+            itemProduto: produto
+        });
+    };
 
 
-export default function ItemProduto({ produto }) {
     return (
         <View style={styles.container}>
             <View style={styles.containerItem}>
-                <Image style={styles.imagem} source={{ uri: produto.imagem }} />
+                <Image style={styles.imagem} source={{ uri: `data:image/png;base64,${produto.imagem}` }} />
                 <View style={styles.info}>
                     <Text style={styles.descricao}>{produto.descricao}</Text>
                     <Text>Preco {produto.preco}</Text>
@@ -22,13 +36,13 @@ export default function ItemProduto({ produto }) {
             </View>
             <View style={styles.containerButtons}>
                 <GradientButton buttonStyle={styles.button}>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={handleEditar} >
                         <Text>Editar</Text>
                     </TouchableOpacity>
                     <Icon name="pencil" size={15} color="black" />
                 </GradientButton>
                 <GradientButton buttonStyle={styles.button}>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={handleExcluir}>
                         <Text>Excluir</Text>
                     </TouchableOpacity>
                     <Icon name="trash" size={15} color="black" />
@@ -66,9 +80,9 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     imagem: {
-        height: 50,
-        width: 50,
-        borderRadius: 50,
+        height: 100,
+        width: 100,
+        // borderRadius: 50,
         alignSelf: 'center',
     },
     info: {

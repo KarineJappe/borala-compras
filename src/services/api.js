@@ -16,7 +16,6 @@ api.interceptors.response.use(
         return response
     },
     error => {
-
         if (
             error.request._hasError === true &&
             error.request._response.includes('connect')
@@ -31,43 +30,40 @@ api.interceptors.response.use(
 
         if (error.response.status === 401) {
             const requestConfig = error.config
-
             // O token JWT expirou
-
             deleteUser().then(() => {
                 navigate('AuthLoading', {})
             })
-
             return axios(requestConfig)
         }
-
         return Promise.reject(error)
     },
 )
 
 api.interceptors.request.use(
-
     config => {
         return getUser()
             .then(user => {
                 user = JSON.parse(user)
                 if (user && user.token)
-                    console.log("token" + user.token);
+                    console.log("ENTROU: TOKEN => " + user.token);
 
                 config.headers.Authorization = `Bearer ${user.token}`
                 return Promise.resolve(config)
             })
             .catch(error => {
+                console.log("DEU ERRO => " + error)
                 return Promise.resolve(config)
             })
     },
     error => {
+        console.log("OUTRO ERRO:" + error);
         return Promise.reject(error)
     },
 )
 
-export default request = (method, endpoint, data) => {
+export default requestt = (method, endpoint, data) => {
     return api[method](endpoint, data)
         .then(response => (response))
-        .catch(({ response }) => response)
+    // .catch(({ response }) => response)
 }

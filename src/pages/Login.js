@@ -1,21 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     StyleSheet,
     Image,
     TextInput,
     Text,
-    Error,
     TouchableOpacity,
     ActivityIndicator,
+    View,
+    Platform,
+    KeyboardAvoidingView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { StackActions, NavigationAction, CommonActions } from '@react-navigation/native';
-import { useState } from 'react';
+import { CommonActions } from '@react-navigation/native';
 import { login } from '../services/usuario';
 import Gradient from '../utils/gradientFundo';
 import GradientButton from '../utils/gradientButton';
 import PropTypes from 'prop-types'
-
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 export default function Login({ navigation }) {
     const [email, setEmail] = useState('');
@@ -37,71 +38,80 @@ export default function Login({ navigation }) {
                 email: email,
                 password: password
             }
-
             const response = await login(credentials);
-            console.log(response.data);
-
             const user = response.data;
-
             await saveUser(user)
 
             navigation.dispatch(
                 CommonActions.navigate({
-                    name: 'Produtos'
+                    name: 'Produtos',
+                    params: {
+                        user: user.user.id
+                    },
                 })
             );
-
-            // const resetAction = StackActions.reset({
-            //     index: 0,
-            //     actions: [NavigationAction.navigate({ routeName: 'Login' })],
-            // })
-
             setLoading(false)
-
-            // navigation.dispatch(resetAction)
         } catch (err) {
             console.log("Erro" + err);
             setLoading(false)
             setErrorMessage('Usuário não existe')
         }
     }
+
     return (
-        <Gradient>
-            <Image
-                style={styles.logo}
-                source={require('../assets/img/Logo.png')}
-            />
+        <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+            <Gradient>
+                <Image
+                    style={styles.logo}
+                    source={require('../assets/img/Logo.png')}
+                />
 
-            {!!errorMessage && <Error>{errorMessage}</Error>}
+                {!!errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
 
-            <TextInput
-                style={styles.button}
-                placeholder="Login"
-                value={email}
-                onChangeText={email => setEmail(email)}
-            />
-            <TextInput
-                style={styles.button}
-                placeholder="Senha"
-                value={password}
-                onChangeText={password => setPassword(password)}
-            />
-            <GradientButton buttonStyle={styles.buttonEntrar}>
-                <TouchableOpacity onPress={signIn}>
-                    {loading ? (
-                        <ActivityIndicator size="small" color="#FFF" />
-                    ) : (
-                        <Text style={styles.entrar}>
-                            Entrar
-                        </Text>
-                    )}
+                <View style={styles.viewButton}>
+                    <Icon style={styles.icon} name="envelope" size={16} color='#ddd' />
+                    <TextInput
+                        style={styles.button}
+                        placeholder="Email"
+                        icon="mail"
+                        value={email}
+                        onChangeText={email => setEmail(email)}
+                    />
+                </View>
+
+                <View style={styles.viewButton}>
+                    <Icon style={styles.icon} name="lock" size={20} color='#ddd' />
+                    <TextInput
+                        style={styles.button}
+                        placeholder="Senha"
+                        value={password}
+                        onChangeText={password => setPassword(password)}
+                        secureTextEntry={true}
+                    />
+                </View>
+
+                <GradientButton buttonStyle={styles.buttonEntrar}>
+                    <TouchableOpacity onPress={signIn}>
+                        {/* <TouchableOpacity onPress={() => navigation.navigate('Cadastro Produto')}> */}
+
+                        {loading ? (
+                            <ActivityIndicator size="small" color="#FFF" />
+                        ) : (
+                            <Text style={styles.entrar}>
+                                Entrar
+                            </Text>
+                        )}
+                    </TouchableOpacity>
+                </GradientButton>
+
+                <TouchableOpacity onPress={() => navigation.navigate('Cadastro')}>
+                    <Text style={styles.registro}>Registre-se</Text>
                 </TouchableOpacity>
-            </GradientButton>
-
-            <TouchableOpacity onPress={() => navigation.navigate('Cadastro')}>
-                <Text>Registre-se </Text>
-            </TouchableOpacity>
-        </Gradient>
+            </Gradient>
+        </KeyboardAvoidingView>
     );
 }
 Login.navigationOptions = () => {
@@ -120,17 +130,27 @@ const styles = StyleSheet.create({
         marginTop: 100,
         marginBottom: 50,
     },
+    viewButton: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        marginTop: 20,
+    },
+    icon: {
+        padding: 10
+    },
     button: {
-        padding: 10,
-        borderRadius: 10,
+        borderRadius: 15,
+        display: "flex",
         width: 229,
         height: 55,
-        marginTop: 20,
+        fontSize: 22,
+        textAlign: 'left',
+        fontFamily: 'Poppins-Regular',
         backgroundColor: '#ffff',
         color: 'black',
-        fontFamily: 'Poppins-Regular',
-        textAlign: 'left',
-        fontSize: 22
     },
     entrar: {
         fontFamily: 'Poppins-Regular',
@@ -145,4 +165,14 @@ const styles = StyleSheet.create({
         color: 'black',
         alignItems: 'center',
     },
+    error: {
+        color: '#e37a7a',
+        textAlign: 'center',
+        marginTop: 10,
+    },
+    registro: {
+        marginTop: 80,
+        fontFamily: 'Poppins-Regular',
+        fontSize: 20,
+    }
 });

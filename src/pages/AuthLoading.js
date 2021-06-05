@@ -5,13 +5,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function AuthLoading({ navigation }) {
-
     useEffect(() => {
         async function handleUserNextScreen() {
             const userToken = await AsyncStorage.getItem('@App:token');
-            console.log("Token " + userToken);
 
-            navigation.navigate(userToken ? 'Produtos' : 'Login');
+            const user = JSON.parse(userToken);
+            if (userToken) {
+                navigation.navigate('Produtos', {
+                    user: user.user
+                });
+            } else {
+                navigation.navigate('Login');
+            }
         }
 
         handleUserNextScreen();
@@ -23,9 +28,3 @@ export default function AuthLoading({ navigation }) {
         </View>
     );
 }
-
-AuthLoading.navigationOptions = () => {
-    return {
-        header: null,
-    };
-};

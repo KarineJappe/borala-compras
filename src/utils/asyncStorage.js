@@ -1,5 +1,7 @@
+import React from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { NavigationActions } from '@react-navigation/native';
+import { CommonActions } from '@react-navigation/native';
+// export const navigationRef = React.createRef();
 
 
 export async function getUser() {
@@ -30,14 +32,14 @@ export async function deleteUser() {
 
 let navigator;
 
-export function setTopLevelNavigator(navigatorRef) {
-    navigator = navigatorRef;
+export function setTopLevelNavigator(navigationRef) {
+    navigator = navigationRef;
 }
 
 export function navigate(routeName, params) {
-    navigator.dispatch(
-        NavigationActions.navigate({
-            routeName,
+    navigator.current?.dispatch(
+        CommonActions.navigate({
+            name: routeName,
             params,
         }),
     );

@@ -19,22 +19,22 @@ export default function Categorias() {
             <View style={styles.card}>
                 <Text>
                     Categorias
-            </Text>
+                </Text>
             </View>
             <View style={styles.card}>
                 <Text>
                     Categorias
-            </Text>
+                </Text>
             </View>
             <View style={styles.card}>
                 <Text>
                     Categorias
-            </Text>
+                </Text>
             </View>
             <View style={styles.card}>
                 <Text>
                     Categorias
-            </Text>
+                </Text>
             </View>
         </>
 

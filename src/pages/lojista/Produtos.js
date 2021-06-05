@@ -1,39 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     StyleSheet,
     View,
     FlatList,
-    TouchableOpacity,
     Text
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/core';
 import { getProduto } from '../../services/produto';
+import { FAB } from 'react-native-paper';
 import ItemProduto from '../../utils/itemProduto';
-import GradientButton from '../../utils/gradientButton';
 
-
-export default function Produtos() {
+export default function Produtos({ navigation }) {
     const [data, setData] = useState([]);
 
-    useEffect(() => {
-        async function loadProducts() {
+    const carregaProdutos = async () => {
+        try {
             const { data } = await getProduto();
             setData(data.data);
+        } catch (exception) {
+            // console.log(exception);
         }
-        loadProducts();
-    }, []);
+    }
 
-    const renderListItem = ({ item }) => <ItemProduto produto={item} />;
+    useFocusEffect(
+        React.useCallback(() => {
+            carregaProdutos();
+        }, [])
+    );
+
+    const renderListItem = ({ item }) => <ItemProduto produto={item} carregaProdutos={carregaProdutos} navegar={navigation} />;
     return (
         <View style={styles.container}>
-            <View style={styles.containerButton}>
-                <GradientButton buttonStyle={styles.buttonCadastrar}>
-                    <TouchableOpacity>
-                        <Text>
-                            Cadastrar
-                        </Text>
-                    </TouchableOpacity>
-                </GradientButton>
-            </View>
+
             <FlatList
                 style={styles.listaProdutos}
                 data={data}
@@ -41,6 +39,18 @@ export default function Produtos() {
                 renderItem={renderListItem}
                 numColumns={2}
                 columnWrapperStyle={styles.flatList}
+                ListEmptyComponent={
+                    <View style={styles.message}>
+                        <Text>Nenhum produto cadastrado. </Text>
+                    </View>
+                }
+            />
+
+            <FAB
+                label="Cadasttrar"
+                style={styles.buttonCadastrar}
+                icon="plus"
+                onPress={() => navigation.navigate('Cadastro Produto')}
             />
         </View>
     );
@@ -63,14 +73,15 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around'
     },
     buttonCadastrar: {
-        padding: 10,
-        borderRadius: 10,
-        width: 150,
-        height: 50,
-        marginTop: 20,
-        color: 'black',
+        position: 'absolute',
+        elevation: 3,
+        margin: 16,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(15,136,147,1)'
+    },
+    message: {
         alignItems: 'center',
-        justifyContent: 'center',
-        marginHorizontal: 10,
-    }
+        marginTop: '50%'
+    },
 });
