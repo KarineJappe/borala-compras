@@ -11,10 +11,11 @@ import { CommonActions } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import GradientButton from '../../utils/gradientButton';
 import { registrarProduto, editarProduto } from '../../services/produto';
-import { getEstabelecimentoById_user } from '../../services/estabelecimento';
+import { getEstabelecimentoByUserId } from '../../services/estabelecimento';
 import { useFocusEffect } from '@react-navigation/core';
 
 export default function CadastroProduto({ route, navigation }) {
+    console.log(route);
     const id = route.params?.itemProduto?.id || false;
     const item_produto = route.params?.itemProduto || false;
     const { id_user, base64 } = route.params;
@@ -44,20 +45,17 @@ export default function CadastroProduto({ route, navigation }) {
                 imagem
             });
         } else {
-            const estabelecimento = await getEstabelecimentoById_user(id_user);
-
+            const estabelecimento = await getEstabelecimentoByUserId(id_user);
             if (estabelecimento.status === 200) {
                 const id_estabelecimento = estabelecimento.data.id;
-
                 setImagem(base64);
-
                 const data = await registrarProduto({
                     descricao,
                     observacao,
                     preco,
                     desconto,
-                    imagem,
-                    id_estabelecimento
+                    id_estabelecimento,
+                    imagem
                 });
                 console.log(data);
             } else {
@@ -67,7 +65,7 @@ export default function CadastroProduto({ route, navigation }) {
 
         navigation.dispatch(
             CommonActions.navigate({
-                name: 'Produtos'
+                name: 'Produtos',
             })
         );
     };
@@ -104,7 +102,6 @@ export default function CadastroProduto({ route, navigation }) {
                 />
             </View>
 
-            {console.log(base64 ? 'b: ' + base64.substr(-10) : undefined)}
             <View style={[styles.anexo, styles.button]}>
                 {imagem ?
                     <Image
@@ -115,7 +112,9 @@ export default function CadastroProduto({ route, navigation }) {
             </View>
 
             <GradientButton buttonStyle={styles.buttonFoto}>
-                <TouchableOpacity onPress={() => navigation.navigate('Camera')}>
+                <TouchableOpacity onPress={() => navigation.navigate('Camera', {
+                    route: 'Cadastro Produto'
+                })}>
                     <Text style={styles.foto}>
                         Capturar
                     </Text>

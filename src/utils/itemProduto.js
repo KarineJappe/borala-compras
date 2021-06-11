@@ -15,7 +15,6 @@ export default function ItemProduto({ produto, carregaProdutos, navegar }) {
     const handleExcluir = async () => {
         const { data } = await deleteProduto(produto.id);
         carregaProdutos();
-        // console.log(data);
     };
 
     const handleEditar = async () => {
@@ -23,7 +22,6 @@ export default function ItemProduto({ produto, carregaProdutos, navegar }) {
             itemProduto: produto
         });
     };
-
 
     return (
         <View style={styles.container}>

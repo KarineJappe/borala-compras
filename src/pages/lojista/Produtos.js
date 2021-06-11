@@ -6,16 +6,17 @@ import {
     Text
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/core';
-import { getProduto } from '../../services/produto';
+import { getProdutosByEstabelecimentoId } from '../../services/produto';
 import { FAB } from 'react-native-paper';
 import ItemProduto from '../../utils/itemProduto';
 
-export default function Produtos({ navigation }) {
+export default function Produtos({ route, navigation }) {
+    console.log(route.params.estabelecimento);
     const [data, setData] = useState([]);
 
     const carregaProdutos = async () => {
         try {
-            const { data } = await getProduto();
+            const { data } = await getProdutosByEstabelecimentoId(route.params.estabelecimento);
             setData(data.data);
         } catch (exception) {
             // console.log(exception);
@@ -50,7 +51,9 @@ export default function Produtos({ navigation }) {
                 label="Cadasttrar"
                 style={styles.buttonCadastrar}
                 icon="plus"
-                onPress={() => navigation.navigate('Cadastro Produto')}
+                onPress={() => navigation.navigate('Cadastro Produto', {
+                    id_user: route.params.user
+                })}
             />
         </View>
     );
