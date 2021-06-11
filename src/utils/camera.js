@@ -4,14 +4,14 @@ import { RNCamera } from 'react-native-camera';
 import { CommonActions } from '@react-navigation/native';
 
 
-export default function Camera({ navigation }) {
+export default function Camera({ route, navigation }) {
     takePicture = async () => {
         if (this.camera) {
             const options = { quality: 0.5, base64: true, doNotSave: true };
             const { base64 } = await this.camera.takePictureAsync(options)
             navigation.dispatch(
                 CommonActions.navigate({
-                    name: 'Cadastro Produto',
+                    name: route.params.route,
                     params: {
                         base64: base64,
                     },

@@ -3,19 +3,29 @@ import {
     StyleSheet,
     View,
     Text,
+    Image,
     TextInput,
     TouchableOpacity,
     KeyboardAvoidingView,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CommonActions } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import GradientButton from '../../utils/gradientButton';
 import { register } from '../../services/usuario';
 import { registrarEstabelecimento, editarEstabelecimento } from '../../services/estabelecimento';
 import { editarProduto } from '../../services/produto';
+import { useFocusEffect } from '@react-navigation/core';
+
+async function saveUser(user) {
+    await AsyncStorage.setItem('@App:token', JSON.stringify(user))
+}
 
 export default function Cadastro({ route, navigation }) {
     const estabelecimento = route.params?.estabelecimento || false;
     const user = route.params?.user || false;
+    const { user_id, base64 } = route.params || false;
+
 
     //States do Usuário
     const [email, setEmail] = useState(user ? user.email : "");
@@ -27,14 +37,26 @@ export default function Cadastro({ route, navigation }) {
     const [cnpj, setCnpj] = useState(estabelecimento ? estabelecimento.cnpj : "");
     const [endereco, setEndereco] = useState(estabelecimento ? estabelecimento.endereco : "");
     const [telefone, setTelefone] = useState(estabelecimento ? estabelecimento.telefone : "");
+    const [imagem, setImagem] = useState('');
+
+    useFocusEffect(
+        React.useCallback(() => {
+            const teste = base64 ? base64 : estabelecimento.imagem || undefined;
+            setImagem(teste);
+        }, [base64])
+    );
+
 
     const handleRegistrar = async () => {
+        let id_estabelecimento = null;
+        let user_id = null;
         if (estabelecimento) {
             await editarEstabelecimento(estabelecimento.id, {
                 razao_social,
                 nome_fantasia,
                 cnpj,
                 endereco,
+                imagem,
                 telefone
             });
             await editarProduto(user.id, {
@@ -43,24 +65,28 @@ export default function Cadastro({ route, navigation }) {
             })
         } else {
             const resUsuario = await register({ email, password });
-            if (resUsuario.status === 201) {
-                const id_user = resUsuario.data.user.id;
+            await saveUser(resUsuario.data);
+            if (resUsuario.status === 201 || 200) {
+                user_id = resUsuario.data.user.id;
                 const { data } = await registrarEstabelecimento({
                     razao_social,
                     nome_fantasia,
                     cnpj,
                     endereco,
                     telefone,
-                    id_user
+                    imagem,
+                    user_id
                 });
                 console.log(data);
+                id_estabelecimento = data.retorno.id;
             }
         };
         navigation.dispatch(
             CommonActions.navigate({
                 name: 'Produtos',
                 params: {
-                    user: id_user
+                    user: user_id,
+                    estabelecimento: id_estabelecimento
                 },
             })
         );
@@ -118,6 +144,24 @@ export default function Cadastro({ route, navigation }) {
                     secureTextEntry={true}
                 />
 
+                <View style={[styles.anexo, styles.button]}>
+                    {imagem ?
+                        <Image
+                            source={{ uri: `data:image/png;base64,${imagem}` }}
+                            style={{ height: "100%", width: "100%" }}
+                            onPress={() => navigation.navigate('Camera', {
+                                route: 'Cadastro'
+                            })}
+                        />
+                        : <Icon
+                            style={styles.icon} name="camera" size={80} color='#555'
+                            onPress={() => navigation.navigate('Camera', {
+                                route: 'Cadastro'
+                            })} />
+                    }
+                </View>
+
+
                 <GradientButton buttonStyle={styles.buttonEntrar}>
                     <TouchableOpacity onPress={handleRegistrar}>
                         {/* <TouchableOpacity onPress = {() => navigation.navigate('Produtos')}> */}
@@ -128,7 +172,6 @@ export default function Cadastro({ route, navigation }) {
                 </GradientButton>
             </View>
         </KeyboardAvoidingView>
-
     );
 };
 
@@ -142,8 +185,8 @@ const styles = StyleSheet.create({
     button: {
         padding: 5,
         borderRadius: 10,
-        width: 288,
-        height: 35,
+        width: 350,
+        height: 40,
         marginTop: 20,
         backgroundColor: '#ffff',
         color: 'black',
@@ -163,6 +206,14 @@ const styles = StyleSheet.create({
         marginTop: 20,
         color: 'black',
         alignItems: 'center',
+    },
+    anexo: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    icon: {
+        alignItems: 'center'
     },
 
 });
