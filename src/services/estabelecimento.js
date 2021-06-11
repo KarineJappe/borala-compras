@@ -3,7 +3,7 @@ import request from './api'
 export const getEstabelecimento = async () =>
     await request('get', '/estabelecimentos')
 
-export const getEstabelecimentoById_user = async id_user =>
+export const getEstabelecimentoByUserId = async id_user =>
     await request('get', `/estabelecimentos/user/${id_user}`)
 
 export const registrarEstabelecimento = async ususario =>

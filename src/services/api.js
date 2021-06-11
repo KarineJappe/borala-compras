@@ -32,7 +32,7 @@ api.interceptors.response.use(
             const requestConfig = error.config
             // O token JWT expirou
             deleteUser().then(() => {
-                navigate('AuthLoading', {})
+                navigate('AuthLoading')
             })
             return axios(requestConfig)
         }
