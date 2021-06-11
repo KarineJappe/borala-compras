@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { Appbar, Menu, Divider } from 'react-native-paper';
 import { deleteUser } from '../../utils/asyncStorage';
-import { getEstabelecimentoById_user } from '../../services/estabelecimento';
+import { getEstabelecimentoByUserId } from '../../services/estabelecimento';
 
 const MenuLojista = ({ route, navigation }) => {
     const [visible, setVisible] = useState(false);
@@ -10,10 +10,10 @@ const MenuLojista = ({ route, navigation }) => {
     const closeMenu = () => setVisible(false);
 
     const handleEditarEstabeleciemnto = async () => {
-        const { data } = await getEstabelecimentoById_user(route.params.user.id);
+        const { data } = await getEstabelecimentoByUserId(route.params.user.id);
         closeMenu();
         navigation.navigate('Cadastro', {
-            user: route.params.user,
+            id_user: route.params.user,
             estabelecimento: data
         });
     }
