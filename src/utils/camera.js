@@ -28,8 +28,8 @@ export default function Camera({ route, navigation }) {
                 autoFocus={RNCamera.Constants.AutoFocus.on}
                 flashMode={RNCamera.Constants.FlashMode.off}
                 androidCameraPermissionOptions={{
-                    title: 'Permission to use camera',
-                    message: 'We need your permission to use your camera',
+                    title: 'Permissão para usar a câmera',
+                    message: 'Precisamos de peermissão prara usar a câmera',
                     buttonPositive: 'Ok',
                     buttonNegative: 'Cancel',
                 }}
