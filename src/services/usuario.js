@@ -5,7 +5,7 @@ export const login = async usuario =>
     await request('post', '/users/login', usuario);
 
 //Registrar um novo usuário no APP.
-export const register = async ususario =>
+export const registrarUsuario = async ususario =>
     await request('post', '/users/register', ususario);
 
 
@@ -15,8 +15,8 @@ export const register = async ususario =>
 // export const createUsuario = async ususario =>
 //     await request('post', 'usuarios', ususario)
 
-// export const updateusuario = async (id, usuario) =>
-//     await request('put', `/usuarios/${id}`, usuario)
+export const editarUsuario = async (id, usuario) =>
+    await request('put', `/usuarios/${id}`, usuario)
 
 // export const deleteUsuario = async id =>
 //     await request('delete', `usuarios/${id}`)

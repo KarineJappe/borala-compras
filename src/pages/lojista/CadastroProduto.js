@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     StyleSheet,
     View,
@@ -13,19 +13,34 @@ import GradientButton from '../../utils/gradientButton';
 import { registrarProduto, editarProduto } from '../../services/produto';
 import { getEstabelecimentoByUserId } from '../../services/estabelecimento';
 import { useFocusEffect } from '@react-navigation/core';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+
+const fieldValidation = yup.object().shape({
+    descricao: yup
+        .string()
+        .required('O email não pode ser vazio')
+        .min(2, 'A senha deve conter pelo menos 2 dígitos'),
+    observacao: yup
+        .string()
+        .required('A observação não pode ser vazia'),
+    preco: yup
+        .string()
+        .required('O preço não pode ser vazio')
+        .min(2, 'O preço deve conter pelo menos 6 dígitos'),
+    desconto: yup
+        .string()
+        .min(2, 'O desconto deve conter pelo menos 2 dígitos')
+})
 
 export default function CadastroProduto({ route, navigation }) {
-    console.log(route);
+    const { register, setValue, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(fieldValidation) });
     const id = route.params?.itemProduto?.id || false;
     const item_produto = route.params?.itemProduto || false;
     const { id_user, base64 } = route.params;
 
-    //States do produto
-    const [descricao, setDescricao] = useState(id ? item_produto.descricao : '');
-    const [observacao, setObservacao] = useState(id ? item_produto.observacao : '');
-    const [preco, setPreco] = useState(id ? item_produto.preco : '');
-    const [desconto, setDesconto] = useState(id ? item_produto.desconto : '');
-    const [imagem, setImagem] = useState(id ? item_produto.imagem : '');
+    const [imagem, setImagem] = useState('');
 
     useFocusEffect(
         React.useCallback(() => {
@@ -34,14 +49,21 @@ export default function CadastroProduto({ route, navigation }) {
         }, [base64])
     );
 
-    const handleCadastrar = async () => {
+    useEffect(() => {
+        register('descricao')
+        register('observacao')
+        register('preco')
+        register('descono')
+    }, [register])
+
+    const handleCadastrar = async params => {
         if (id) {
             setImagem(base64);
             const { data } = await editarProduto(item_produto.id, {
-                descricao,
-                observacao,
-                preco,
-                desconto,
+                descricao: params.descricao,
+                observacao: params.observacao,
+                preco: params.preco,
+                desconto: params.desconto,
                 imagem
             });
         } else {
@@ -50,16 +72,14 @@ export default function CadastroProduto({ route, navigation }) {
                 const id_estabelecimento = estabelecimento.data.id;
                 setImagem(base64);
                 const data = await registrarProduto({
-                    descricao,
-                    observacao,
-                    preco,
-                    desconto,
+                    descricao: params.descricao,
+                    observacao: params.observacao,
+                    preco: params.preco,
+                    desconto: params.desconto,
                     id_estabelecimento,
                     imagem
                 });
-                console.log(data);
             } else {
-                console.log(estabelecimento.status);
             }
         };
 
@@ -71,115 +91,143 @@ export default function CadastroProduto({ route, navigation }) {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={styles.mainContainer}>
 
-            <TextInput
-                style={styles.button}
-                placeholder="Descrição"
-                value={descricao}
-                onChangeText={descricao => setDescricao(descricao)}
+            <TextField
+                label={"Descrição"}
+                error={errors?.descricao}
+                placeholder={"Descrição"}
+                onChangeText={text => setValue('descricao', text)}
             />
-
-            <TextInput
-                style={styles.button}
-                placeholder="Observações: tamanhos, cores..."
-                value={observacao}
-                onChangeText={observacao => setObservacao(observacao)}
+            <TextField
+                label={"Observações"}
+                error={errors?.observacao}
+                placeholder={"Observações: tamanhos, cores..."}
+                onChangeText={text => setValue('observacao', text)}
             />
-
             <View style={styles.containerValor}>
-                <TextInput
-                    style={[styles.button, styles.buttonValor]}
-                    placeholder="Preço"
-                    value={preco}
-                    onChangeText={preco => setPreco(preco)}
-                />
-                <TextInput
-                    style={[styles.button, styles.buttonValor]}
-                    placeholder="Desconto"
-                    value={desconto}
-                    onChangeText={desconto => setDesconto(desconto)}
-                />
-            </View>
-
-            <View style={[styles.anexo, styles.button]}>
-                {imagem ?
-                    <Image
-                        source={{ uri: `data:image/png;base64,${imagem}` }}
-                        style={{ height: "100%", width: "100%" }}
+                <View style={styles.inputValor}>
+                    <TextField
+                        label={"Preço"}
+                        error={errors?.preco}
+                        placeholder={"Preço"}
+                        onChangeText={text => setValue('preco', text)}
                     />
-                    : <Icon style={styles.icon} name="camera" size={80} color='#555' />}
+                </View>
+                <View style={styles.inputValor}>
+                    <TextField
+                        label={"Desconto"}
+                        error={errors?.desconto}
+                        placeholder={"Desconto"}
+                        onChangeText={text => setValue('desconto', text)}
+                    />
+                </View>
             </View>
 
-            <GradientButton buttonStyle={styles.buttonFoto}>
-                <TouchableOpacity onPress={() => navigation.navigate('Camera', {
-                    route: 'Cadastro Produto'
-                })}>
-                    <Text style={styles.foto}>
-                        Capturar
-                    </Text>
-                </TouchableOpacity>
-            </GradientButton>
+            <View style={styles.container}>
+                <Text style={styles.label}>Imagem</Text>
+                {imagem ?
+                    <View style={[styles.anexo, styles.imagem]}>
+                        <Image
+                            source={{ uri: `data:image/png;base64,${imagem}` }}
+                            style={{ height: "100%", width: "100%" }}
+                        />
+                    </View>
+                    :
+                    <View style={[styles.anexo, styles.imagem]}>
+                        <Icon
+                            style={styles.icon} name="camera" size={80} color='#555'
+                            onPress={() => navigation.navigate('Camera', {
+                                route: 'Cadastro Produto'
+                            })} />
+                    </View>
+                }
+            </View>
 
             <GradientButton buttonStyle={styles.buttonSalvar}>
-                <TouchableOpacity onPress={handleCadastrar}>
+                <TouchableOpacity onPress={handleSubmit(handleCadastrar)}>
                     <Text style={styles.registrar}>
                         {id ? 'Editar' : 'Cadastrar'}
                     </Text>
                 </TouchableOpacity>
             </GradientButton>
         </View>
-
     );
 };
 
+const TextField = ({ error, label, ...inputProps }) => (
+    <View style={styles.container}>
+        <Text style={styles.label}>{label}</Text>
+        <TextInput
+            style={[styles.input, !!error && styles.borderError]}
+            {...inputProps}
+        />
+        {!!error && <Text style={styles.errorMessage}>{error.message}</Text>}
+    </View>
+)
+
 const styles = StyleSheet.create({
-    container: {
-        display: 'flex',
+    mainContainer: {
         flex: 1,
-        flexDirection: 'column'
+        marginTop: '5%',
+        alignItems: 'center',
+    },
+    label: {
+        fontSize: 14,
+        color: 'black',
+        marginBottom: 4
+    },
+    input: {
+        height: 40,
+        fontSize: 15,
+        backgroundColor: '#fff',
+        paddingHorizontal: 8,
+        borderRadius: 8
+    },
+    imagem: {
+        height: 200,
+        fontSize: 15,
+        backgroundColor: '#fff',
+        paddingHorizontal: 8,
+        borderRadius: 8
     },
     containerValor: {
-        display: 'flex',
         flexDirection: 'row',
-        alignItems: 'stretch'
+        justifyContent: 'center',
     },
-    button: {
+    inputValor: {
+        width: '44%',
+        alignItems: 'center'
+    },
+    container: {
+        width: '80%',
         borderRadius: 10,
-        margin: 10,
-        backgroundColor: '#ffff',
-        color: 'black',
-        fontFamily: 'Poppins-Regular',
-        textAlign: 'left',
-        fontSize: 15
+        marginBottom: 10
     },
-    buttonValor: {
-        flex: 1
+    borderError: {
+        borderWidth: 1,
+        borderColor: 'rgba(200,0,50,1)'
+    },
+    errorMessage: {
+        fontSize: 10,
+        color: 'rgba(200,0,50,1)',
+        textAlign: 'center',
+        marginTop: 5
     },
     anexo: {
-        flex: 1,
+        // flex: 1,
         alignItems: 'center',
         justifyContent: 'center'
     },
     icon: {
         alignItems: 'center'
     },
-    foto: {
-        fontFamily: 'Poppins-Regular',
-        fontSize: 15
-    },
-    buttonFoto: {
-        padding: 10,
-        marginHorizontal: 10,
-        borderRadius: 10,
-        alignSelf: 'flex-start'
-    },
     registrar: {
         fontFamily: 'Poppins-Regular',
         fontSize: 22
     },
     buttonSalvar: {
-        padding: 10,
+        padding: 8,
         margin: 10,
         borderRadius: 10,
         marginVertical: 10,
