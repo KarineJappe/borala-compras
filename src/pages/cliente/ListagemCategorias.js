@@ -22,7 +22,7 @@ export default function Categorias() {
 
     const Item = ({ data }) => (
         <View style={styles.item}>
-            <View style={[styles.anexo, styles.button]}>
+            <View style={styles.anexo}>
                 {data.imagem ?
                     <Image
                         source={{ uri: `data:image/png;base64,${data.imagem}` }}
@@ -33,8 +33,7 @@ export default function Categorias() {
                     />
                 }
             </View>
-            <Text style={styles.title}>{data.nome_fantasia}</Text>
-            <Text>{data.endereco}</Text>
+            <Text style={styles.title}>{data.descricao}</Text>
         </View>
     );
 
@@ -79,18 +78,16 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 20,
     },
-    button: {
+    anexo: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
         borderRadius: 10,
         height: 100,
         backgroundColor: '#ffff',
         color: 'black',
         fontFamily: 'Poppins-Regular',
         fontSize: 15
-    },
-    anexo: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center'
     },
     icon: {
         alignItems: 'center'
