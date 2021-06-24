@@ -16,7 +16,6 @@ import { login } from '../services/usuario';
 import Gradient from '../utils/gradientFundo';
 import GradientButton from '../utils/gradientButton';
 import PropTypes from 'prop-types'
-import Icon from 'react-native-vector-icons/FontAwesome';
 
 export default function Login({ navigation }) {
     const [email, setEmail] = useState('');
@@ -46,7 +45,8 @@ export default function Login({ navigation }) {
                 CommonActions.navigate({
                     name: 'Produtos',
                     params: {
-                        user: user.user.id
+                        user: user.user.id,
+                        estabelecimento: user.user.estabelecimento.id
                     },
                 })
             );
@@ -71,22 +71,22 @@ export default function Login({ navigation }) {
 
                 {!!errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
 
-                <View style={styles.viewButton}>
-                    <Icon style={styles.icon} name="envelope" size={16} color='#ddd' />
+                <View style={styles.container}>
+                    <Text style={styles.label}>Email</Text>
                     <TextInput
-                        style={styles.button}
-                        placeholder="Email"
+                        style={styles.input}
+                        placeholder="Digite seu email.."
                         icon="mail"
                         value={email}
                         onChangeText={email => setEmail(email)}
                     />
                 </View>
 
-                <View style={styles.viewButton}>
-                    <Icon style={styles.icon} name="lock" size={20} color='#ddd' />
+                <View style={styles.container}>
+                    <Text style={styles.label}>Senha</Text>
                     <TextInput
-                        style={styles.button}
-                        placeholder="Senha"
+                        style={styles.input}
+                        placeholder="Senha..."
                         value={password}
                         onChangeText={password => setPassword(password)}
                         secureTextEntry={true}
@@ -95,8 +95,6 @@ export default function Login({ navigation }) {
 
                 <GradientButton buttonStyle={styles.buttonEntrar}>
                     <TouchableOpacity onPress={signIn}>
-                        {/* <TouchableOpacity onPress={() => navigation.navigate('Cadastro Produto')}> */}
-
                         {loading ? (
                             <ActivityIndicator size="small" color="#FFF" />
                         ) : (
@@ -130,27 +128,34 @@ const styles = StyleSheet.create({
         marginTop: 100,
         marginBottom: 50,
     },
+    container: {
+        width: '80%',
+        borderRadius: 10,
+        marginBottom: 10
+    },
     viewButton: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#fff',
         borderRadius: 15,
-        marginTop: 20,
+    },
+    label: {
+        fontSize: 15,
+        color: 'black',
+        marginBottom: 4
     },
     icon: {
         padding: 10
     },
-    button: {
-        borderRadius: 15,
-        display: "flex",
-        width: 229,
-        height: 55,
-        fontSize: 22,
-        textAlign: 'left',
-        fontFamily: 'Poppins-Regular',
-        backgroundColor: '#ffff',
+    input: {
+        height: 50,
+        fontSize: 15,
+        backgroundColor: '#fff',
+        paddingHorizontal: 8,
+        borderRadius: 8,
         color: 'black',
+        fontFamily: 'Poppins-Regular',
     },
     entrar: {
         fontFamily: 'Poppins-Regular',
@@ -171,8 +176,10 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     registro: {
-        marginTop: 80,
+        marginTop: 60,
         fontFamily: 'Poppins-Regular',
         fontSize: 20,
+        fontWeight: 'bold',
+        textDecorationLine: 'underline'
     }
 });

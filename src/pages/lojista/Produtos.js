@@ -11,7 +11,6 @@ import { FAB } from 'react-native-paper';
 import ItemProduto from '../../utils/itemProduto';
 
 export default function Produtos({ route, navigation }) {
-    console.log(route.params.estabelecimento);
     const [data, setData] = useState([]);
 
     const carregaProdutos = async () => {

@@ -12,7 +12,8 @@ export default function AuthLoading({ navigation }) {
             const user = JSON.parse(userToken);
             if (userToken) {
                 navigation.navigate('Produtos', {
-                    user: user.user
+                    user: user.user.id,
+                    estabelecimento: user.user.estabelecimento.id
                 });
             } else {
                 navigation.navigate('Login');
