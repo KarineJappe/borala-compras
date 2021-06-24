@@ -13,13 +13,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CommonActions } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import GradientButton from '../../utils/gradientButton';
-import { registrarUsuario, login, editarUsuario } from '../../services/usuario';
+import { registrarUsuario, login } from '../../services/usuario';
+import { getCategoria } from '../../services/categoria';
 import { registrarEstabelecimento, editarEstabelecimento } from '../../services/estabelecimento';
 import { useFocusEffect } from '@react-navigation/core';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import { createValidationSchema, editValidationSchema } from './validationSchema'
+import { createValidationSchema, editValidationSchema } from './validationSchema';
+import RNPickerSelect from 'react-native-picker-select';
 
 async function saveUser(user) {
     await AsyncStorage.setItem('@App:token', JSON.stringify(user))
@@ -29,7 +30,10 @@ const Cadastro = ({ route, navigation }) => {
     const estabelecimento = route.params?.estabelecimento || false;
     const user = route.params?.user || false;
     const { id_user, base64 } = route.params || false;
+
     const [imagem, setImagem] = useState(estabelecimento?.imagem || '');
+    const [arrayCategorias, setArrayCategorias] = useState([]);
+    const [categoria, setCategoria] = useState('');
 
     const { register, setValue, handleSubmit, formState: { errors }, getValues } = useForm({
         defaultValues: estabelecimento || {},
@@ -44,6 +48,10 @@ const Cadastro = ({ route, navigation }) => {
     );
 
     useEffect(() => {
+        loadCategorias();
+    }, []);
+
+    useEffect(() => {
         register('razao_social')
         register('nome_fantasia')
         register('cnpj')
@@ -53,18 +61,35 @@ const Cadastro = ({ route, navigation }) => {
         register('password')
     }, [register])
 
+    const loadCategorias = async () => {
+        const { data } = await getCategoria();
+        let select = [];
+        if (data.data && data.data.length > 0) {
+            select = data.data.map(element => {
+                return {
+                    value: element.id,
+                    label: element.descricao,
+                    key: element.id
+                }
+            })
+        }
+        setArrayCategorias(select);
+    };
+
+
     const handleRegistrar = async params => {
         let id_estabelecimento = null;
         let user_id = id_user;
 
         if (estabelecimento) {
-            const response = await editarEstabelecimento(estabelecimento.id, {
+            await editarEstabelecimento(estabelecimento.id, {
                 razao_social: params.razao_social,
                 nome_fantasia: params.nome_fantasia,
                 cnpj: params.cnpj,
                 endereco: params.endereco,
                 telefone: params.telefone,
-                imagem
+                imagem,
+                id_categoria: categoria
             });
 
             navigation.dispatch(
@@ -80,21 +105,26 @@ const Cadastro = ({ route, navigation }) => {
         }
 
         const regUsuario = await registrarUsuario({ email: params.email, password: params.password });
+
         if (regUsuario.status === 201 || 200) {
             user_id = regUsuario.data.user.id;
-            const { data } = await registrarEstabelecimento({
+
+            const data = await registrarEstabelecimento({
                 razao_social: params.razao_social,
                 nome_fantasia: params.nome_fantasia,
                 cnpj: params.cnpj,
                 endereco: params.endereco,
                 telefone: params.telefone,
                 imagem,
-                user_id
+                user_id,
+                id_categoria: categoria
             });
 
-            id_estabelecimento = data.retorno.id;
+            console.log(data);
+            id_estabelecimento = data.retorno;
 
             const logUsuario = await login({ email: params.email, password: params.password });
+
             await saveUser(logUsuario.data);
 
             navigation.dispatch(
@@ -153,10 +183,22 @@ const Cadastro = ({ route, navigation }) => {
                         defaultValue={getValues().telefone || ''}
                     />
 
+                    <View style={styles.container}>
+                        <Text style={styles.label}>Categoria</Text>
+                        <View style={styles.input}>
+                            <RNPickerSelect
+                                placeholder={{ label: 'Seleciona uma categoria', value: null }}
+                                style={pickerSelectStyles}
+                                onValueChange={setCategoria}
+                                items={arrayCategorias}
+                                value={categoria}
+                            />
+                        </View>
+                    </View>
+
                     {estabelecimento ?
                         null
-                        :
-                        <>
+                        : <>
                             <TextField
                                 label={"Email"}
                                 error={errors?.email}
@@ -240,7 +282,8 @@ const styles = StyleSheet.create({
         fontSize: 15,
         backgroundColor: '#fff',
         paddingHorizontal: 8,
-        borderRadius: 8
+        borderRadius: 8,
+        justifyContent: 'center'
     },
     imagem: {
         height: 150,
@@ -309,3 +352,9 @@ const styles = StyleSheet.create({
     //     alignItems: 'center'
     // },
 });
+
+const pickerSelectStyles = StyleSheet.create({
+    inputAndroid: {
+        color: 'black',
+    }
+})
