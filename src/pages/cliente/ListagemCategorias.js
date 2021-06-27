@@ -6,12 +6,13 @@ import {
     Image,
     StatusBar,
     SafeAreaView,
-    FlatList
+    FlatList,
+    TouchableOpacity
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { getCategoria } from '../../services/categoria';
 
-export default function Categorias() {
+export default function Categorias({ navigation }) {
     const [data, setData] = useState([]);
 
     useEffect(async () => {
@@ -21,20 +22,27 @@ export default function Categorias() {
     }, []);
 
     const Item = ({ data }) => (
-        <View style={styles.item}>
-            <View style={styles.anexo}>
-                {data.imagem ?
-                    <Image
-                        source={{ uri: `data:image/png;base64,${data.imagem}` }}
-                        style={{ height: "100%", width: "100%" }}
-                    />
-                    : <Icon
-                        style={styles.icon} name="camera" size={80} color='#555'
-                    />
-                }
-            </View>
-            <Text style={styles.title}>{data.descricao}</Text>
-        </View>
+        <TouchableOpacity
+            style={styles.item}
+            onPress={() => navigation.navigate('Estabelecimentos', {
+                id_categoria: data.id
+            })}
+        >
+            <>
+                <View style={styles.anexo}>
+                    {data.imagem ?
+                        <Image
+                            source={{ uri: `data:image/png;base64,${data.imagem}` }}
+                            style={{ height: "100%", width: "100%" }}
+                        />
+                        : <Icon
+                            style={styles.icon} name="camera" size={80} color='#555'
+                        />
+                    }
+                </View>
+                <Text style={styles.title}>{data.descricao}</Text>
+            </>
+        </TouchableOpacity>
     );
 
     const renderItem = ({ item }) => (

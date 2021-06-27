@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useState } from 'react';
 import {
     StyleSheet,
     Text,
@@ -8,16 +9,29 @@ import {
     FlatList
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { getProduto } from '../../services/produto';
+import { getProduto, getProdutosByEstabelecimentoId } from '../../services/produto';
 
-export default function Categorias() {
+export default function Categorias({ route }) {
     const [data, setData] = useState([]);
+    const id_estabelecimento = route.params?.id_estabelecimento;
 
-    useEffect(async () => {
-        const { data } = await getProduto();
-
-        setData(data.data);
-    }, []);
+    useFocusEffect(
+        React.useCallback(() => {
+            const handleProdutos = async () => {
+                let response = [];
+                try {
+                    if (id_estabelecimento) {
+                        response = await getProdutosByEstabelecimentoId(id_estabelecimento);
+                    } else {
+                        response = await getProduto();
+                    }
+                } catch (exception) {
+                }
+                setData(response.data);
+            };
+            handleProdutos();
+        }, [id_estabelecimento])
+    );
 
     const Item = ({ data }) => (
         <View style={styles.container}>
@@ -31,7 +45,6 @@ export default function Categorias() {
                         :
                         <Icon style={styles.icon} name="camera" size={80} color='#555' />
                     }
-
                 </View>
                 <View style={styles.info}>
                     <Text style={styles.title}>{data.descricao}</Text>
@@ -53,6 +66,7 @@ export default function Categorias() {
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
                 numColumns={2}
+                columnWrapperStyle={styles.flatList}
                 ListEmptyComponent={
                     <View style={styles.message}>
                         <Text>Nenhum produto cadastrado. </Text>
@@ -77,6 +91,10 @@ const styles = StyleSheet.create({
     },
     listaProdutos: {
         flex: 1,
+    },
+    flatList: {
+        flex: 1,
+        // justifyContent: 'space-around'
     },
     title: {
         fontSize: 20,

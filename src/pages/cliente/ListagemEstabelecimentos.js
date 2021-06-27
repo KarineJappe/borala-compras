@@ -1,5 +1,5 @@
+import { useFocusEffect } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { useEffect } from 'react';
 import {
     StyleSheet,
     Image,
@@ -7,22 +7,41 @@ import {
     View,
     StatusBar,
     SafeAreaView,
-    FlatList
+    FlatList,
+    TouchableOpacity
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { getEstabelecimento } from '../../services/estabelecimento';
+import { getEstabelecimento, getEstabelecimentoByIdCategoria } from '../../services/estabelecimento';
 
-export default function Categorias() {
+export default function Categorias({ route, navigation }) {
     const [data, setData] = useState([]);
+    const id_categoria = route.params?.id_categoria || false;
 
-    useEffect(async () => {
-        const { data } = await getEstabelecimento();
-
-        setData(data.data);
-    }, []);
+    useFocusEffect(
+        React.useCallback(() => {
+            const handleEstabelecimentos = async () => {
+                let response = [];
+                try {
+                    if (id_categoria) {
+                        response = await getEstabelecimentoByIdCategoria(id_categoria);
+                    } else {
+                        response = await getEstabelecimento();
+                    }
+                } catch (exception) {
+                }
+                setData(response.data);
+            };
+            handleEstabelecimentos();
+        }, [id_categoria])
+    );
 
     const Item = ({ data }) => (
-        <View style={styles.item}>
+        <TouchableOpacity
+            style={styles.item}
+            onPress={() => navigation.navigate('Produtos', {
+                id_estabelecimento: data.id
+            })}
+        >
             <View style={[styles.anexo, styles.button]}>
                 {data.imagem ?
                     <Image
@@ -36,7 +55,7 @@ export default function Categorias() {
             </View>
             <Text style={styles.title}>{data.nome_fantasia}</Text>
             <Text>{data.endereco}</Text>
-        </View>
+        </TouchableOpacity>
     );
 
     const renderItem = ({ item }) => (
