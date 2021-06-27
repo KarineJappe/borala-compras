@@ -16,6 +16,7 @@ import { useFocusEffect } from '@react-navigation/core';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import { TextInputMask } from 'react-native-masked-text';
 
 const fieldValidation = yup.object().shape({
     descricao: yup
@@ -68,6 +69,7 @@ export default function CadastroProduto({ route, navigation }) {
             });
         } else {
             const estabelecimento = await getEstabelecimentoByUserId(id_user);
+            console.log(estabelecimento);
             if (estabelecimento.status === 200) {
                 const id_estabelecimento = estabelecimento.data.id;
                 setImagem(base64);
@@ -79,7 +81,6 @@ export default function CadastroProduto({ route, navigation }) {
                     id_estabelecimento,
                     imagem
                 });
-            } else {
             }
         };
 
@@ -107,19 +108,37 @@ export default function CadastroProduto({ route, navigation }) {
             />
             <View style={styles.containerValor}>
                 <View style={styles.inputValor}>
-                    <TextField
+                    <TextMoneyField
+                        type={'money'}
+                        options={{
+                            precision: 2,
+                            separator: ',',
+                            delimiter: '.',
+                            unit: 'R$',
+                            suffixUnit: ''
+                        }}
                         label={"Preço"}
                         error={errors?.preco}
                         placeholder={"Preço"}
-                        onChangeText={text => setValue('preco', text)}
+                        includeRawValueInChangeText={true}
+                        onChangeText={(mask, text) => { console.log(text); setValue('preco', text) }}
                     />
                 </View>
                 <View style={styles.inputValor}>
-                    <TextField
+                    <TextMoneyField
+                        type={'money'}
+                        options={{
+                            precision: 2,
+                            separator: ',',
+                            delimiter: '.',
+                            unit: 'R$',
+                            suffixUnit: ''
+                        }}
                         label={"Desconto"}
                         error={errors?.desconto}
                         placeholder={"Desconto"}
-                        onChangeText={text => setValue('desconto', text)}
+                        includeRawValueInChangeText={true}
+                        onChangeText={(mask, text) => setValue('desconto', text)}
                     />
                 </View>
             </View>
@@ -159,6 +178,17 @@ const TextField = ({ error, label, ...inputProps }) => (
     <View style={styles.container}>
         <Text style={styles.label}>{label}</Text>
         <TextInput
+            style={[styles.input, !!error && styles.borderError]}
+            {...inputProps}
+        />
+        {!!error && <Text style={styles.errorMessage}>{error.message}</Text>}
+    </View>
+);
+
+const TextMoneyField = ({ error, label, ...inputProps }) => (
+    <View style={styles.container}>
+        <Text style={styles.label}>{label}</Text>
+        <TextInputMask
             style={[styles.input, !!error && styles.borderError]}
             {...inputProps}
         />

@@ -21,6 +21,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { createValidationSchema, editValidationSchema } from './validationSchema';
 import RNPickerSelect from 'react-native-picker-select';
+import { TextInputMask } from 'react-native-masked-text';
 
 async function saveUser(user) {
     await AsyncStorage.setItem('@App:token', JSON.stringify(user))
@@ -57,6 +58,7 @@ const Cadastro = ({ route, navigation }) => {
         register('cnpj')
         register('endereco')
         register('telefone')
+        register('categoria')
         register('email')
         register('password')
     }, [register])
@@ -76,11 +78,9 @@ const Cadastro = ({ route, navigation }) => {
         setArrayCategorias(select);
     };
 
-
     const handleRegistrar = async params => {
         let id_estabelecimento = null;
         let user_id = id_user;
-
         if (estabelecimento) {
             await editarEstabelecimento(estabelecimento.id, {
                 razao_social: params.razao_social,
@@ -91,7 +91,6 @@ const Cadastro = ({ route, navigation }) => {
                 imagem,
                 id_categoria: categoria
             });
-
             navigation.dispatch(
                 CommonActions.navigate({
                     name: 'Produtos',
@@ -103,30 +102,26 @@ const Cadastro = ({ route, navigation }) => {
             );
             return ''
         }
-
+        console.log(params);
         const regUsuario = await registrarUsuario({ email: params.email, password: params.password });
-
         if (regUsuario.status === 201 || 200) {
             user_id = regUsuario.data.user.id;
-
-            const data = await registrarEstabelecimento({
+            const { data } = await registrarEstabelecimento({
                 razao_social: params.razao_social,
                 nome_fantasia: params.nome_fantasia,
                 cnpj: params.cnpj,
                 endereco: params.endereco,
                 telefone: params.telefone,
+                id_categoria: params.categoria,
                 imagem,
                 user_id,
-                id_categoria: categoria
             });
 
             console.log(data);
             id_estabelecimento = data.retorno;
 
             const logUsuario = await login({ email: params.email, password: params.password });
-
             await saveUser(logUsuario.data);
-
             navigation.dispatch(
                 CommonActions.navigate({
                     name: 'Produtos',
@@ -136,7 +131,6 @@ const Cadastro = ({ route, navigation }) => {
                     },
                 })
             );
-
         };
     };
 
@@ -161,13 +155,25 @@ const Cadastro = ({ route, navigation }) => {
                         onChangeText={text => setValue('nome_fantasia', text)}
                         defaultValue={getValues().nome_fantasia || ''}
                     />
+                    {/* 
                     <TextField
                         label={"Cnpj"}
                         error={errors?.cnpj}
                         placeholder={"Cnpj"}
                         onChangeText={text => setValue('cnpj', text)}
                         defaultValue={getValues().cnpj || ''}
+                    /> */}
+
+                    <TextMaskField
+                        type={'cnpj'}
+                        label={"Cnpj"}
+                        placeholder={"Cnpj"}
+                        error={errors?.cnpj}
+                        includeRawValueInChangeText={true}
+                        onChangeText={(mask, text) => setValue('cnpj', text)}
+                        defaultValue={getValues().cnpj || ''}
                     />
+
                     <TextField
                         label={"Endereço"}
                         error={errors?.endereco}
@@ -175,15 +181,23 @@ const Cadastro = ({ route, navigation }) => {
                         onChangeText={text => setValue('endereco', text)}
                         defaultValue={getValues().endereco || ''}
                     />
-                    <TextField
+
+                    <TextMaskField
+                        type={'cel-phone'}
+                        options={{
+                            maskType: 'BRL',
+                            withDDD: true,
+                            dddMask: '(51)'
+                        }}
                         label={"Telefone"}
-                        error={errors?.telefone}
                         placeholder={"DD XXXXX-XXXX"}
-                        onChangeText={text => setValue('telefone', text)}
+                        error={errors?.telefone}
+                        includeRawValueInChangeText={true}
+                        onChangeText={(mask, text) => setValue('telefone', text)}
                         defaultValue={getValues().telefone || ''}
                     />
 
-                    <View style={styles.container}>
+                    {/* <View style={styles.container}>
                         <Text style={styles.label}>Categoria</Text>
                         <View style={styles.input}>
                             <RNPickerSelect
@@ -194,7 +208,18 @@ const Cadastro = ({ route, navigation }) => {
                                 value={categoria}
                             />
                         </View>
-                    </View>
+                    </View> */}
+
+                    <TextSelectField
+                        label={"Categoria"}
+                        error={errors?.categoria}
+                        placeholder={{ label: 'Seleciona uma categoria' }}
+                        style={pickerSelectStyles}
+                        onValueChange={text => setValue('categoria', text)}
+                        items={arrayCategorias}
+                    // onChangeText={text => setValue(categoria, text)}
+                    // value={categoria}
+                    />
 
                     {estabelecimento ?
                         null
@@ -217,8 +242,8 @@ const Cadastro = ({ route, navigation }) => {
 
                     <View style={styles.container}>
                         <Text style={styles.label}>Imagem</Text>
-                        {imagem ?
-                            <View style={[styles.anexo, styles.imagem]}>
+                        <View style={[styles.anexo, styles.imagem]}>
+                            {imagem ?
                                 <Image
                                     source={{ uri: `data:image/png;base64,${imagem}` }}
                                     style={{ height: "100%", width: "100%" }}
@@ -226,16 +251,15 @@ const Cadastro = ({ route, navigation }) => {
                                         route: 'Cadastro'
                                     })}
                                 />
-                            </View>
-                            :
-                            <View style={[styles.anexo, styles.imagem]}>
+                                :
                                 <Icon
                                     style={styles.icon} name="camera" size={60} color='#555'
                                     onPress={() => navigation.navigate('Camera', {
                                         route: 'Cadastro'
-                                    })} />
-                            </View>
-                        }
+                                    })}
+                                />
+                            }
+                        </View>
                     </View>
 
                     <GradientButton buttonStyle={styles.buttonEntrar}>
@@ -260,7 +284,30 @@ const TextField = ({ error, label, ...inputProps }) => (
         />
         {!!error && <Text style={styles.errorMessage}>{error.message}</Text>}
     </View>
-)
+);
+
+const TextMaskField = ({ error, label, ...inputProps }) => (
+    <View style={styles.container}>
+        <Text style={styles.label} >{label}</Text>
+        <TextInputMask
+            style={[styles.input, !!error && styles.borderError]}
+            {...inputProps}
+        />
+        {!!error && <Text style={styles.errorMessage}>{error.message}</Text>}
+    </View>
+);
+
+const TextSelectField = ({ error, label, ...inputProps }) => (
+    <View style={styles.container}>
+        <Text style={styles.label} >{label}</Text>
+        <View style={[styles.input, !!error && styles.borderError]}>
+            <RNPickerSelect
+                {...inputProps}
+            />
+        </View>
+        {!!error && <Text style={styles.errorMessage}>{error.message}</Text>}
+    </View>
+);
 
 
 export default Cadastro;
