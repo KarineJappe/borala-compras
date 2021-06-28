@@ -25,45 +25,48 @@ api.interceptors.response.use(
                 'Não foi possível conectar aos nossos servidores, sem conexão a internet',
                 [{ text: 'OK' }],
                 { cancelable: false },
-            )
+            );
         }
 
         if (error.response.status === 401) {
-            const requestConfig = error.config
+            const requestConfig = error.config;
             // O token JWT expirou
+            Alert.alert(
+                'A sessão expirou',
+                'Por motivos de segurança você foi desconectado do servidor. Para acessar a sua conta, por favor, faça o login novamente.',
+                [{ text: 'OK' }],
+                { cancelable: false },
+            )
             deleteUser().then(() => {
                 navigate('AuthLoading')
             })
-            return axios(requestConfig)
+            return axios(requestConfig);
         }
-        return Promise.reject(error)
+        return Promise.reject(error);
     },
 )
 
 api.interceptors.request.use(
     config => {
         return getUser()
-            .then(user => {
-                user = JSON.parse(user)
+            .then(dataUser => {
+                let user = JSON.parse(dataUser)
                 if (user && user.token)
-                    console.log("ENTROU: TOKEN => " + user.token);
-
-                config.headers.Authorization = `Bearer ${user.token}`
-                return Promise.resolve(config)
+                    config.headers.Authorization = `Bearer ${user.token}`
+                return Promise.resolve(config);
             })
             .catch(error => {
-                console.log("DEU ERRO => " + error)
-                return Promise.resolve(config)
+                return Promise.resolve(error);
             })
     },
     error => {
-        console.log("OUTRO ERRO:" + error);
-        return Promise.reject(error)
+        return Promise.reject(error);
     },
 )
 
 export default requestt = (method, endpoint, data) => {
     return api[method](endpoint, data)
         .then(response => (response))
-    // .catch(({ response }) => response)
+        .catch(({ response }) => response)
+
 }

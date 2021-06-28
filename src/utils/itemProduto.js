@@ -13,7 +13,7 @@ import { deleteProduto } from '../services/produto';
 export default function ItemProduto({ produto, carregaProdutos, navegar }) {
 
     const handleExcluir = async () => {
-        const { data } = await deleteProduto(produto.id);
+        await deleteProduto(produto.id);
         carregaProdutos();
     };
 
@@ -29,7 +29,11 @@ export default function ItemProduto({ produto, carregaProdutos, navegar }) {
                 <Image style={styles.imagem} source={{ uri: `data:image/png;base64,${produto.imagem}` }} />
                 <View style={styles.info}>
                     <Text style={styles.descricao}>{produto.descricao}</Text>
-                    <Text>Preco {produto.preco}</Text>
+                    <Text>
+                        <Text style={{ color: 'green' }}>R${produto.preco} </Text>
+                        |
+                        <Text style={{ color: 'red' }}> R${produto.desconto}</Text>
+                    </Text>
                 </View>
             </View>
             <View style={styles.containerButtons}>
@@ -58,9 +62,9 @@ const styles = StyleSheet.create({
     },
     containerItem: {
         backgroundColor: '#eee',
-        borderRadius: 3,
+        borderRadius: 5,
         margin: 10,
-        padding: 10
+        // padding: 10
     },
     containerButtons: {
         flexDirection: 'row',
@@ -78,15 +82,17 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     imagem: {
-        height: 100,
-        width: 100,
-        // borderRadius: 50,
+        height: 120,
+        width: '100%',
+        borderTopLeftRadius: 5,
+        borderTopRightRadius: 5,
         alignSelf: 'center',
     },
     info: {
         flexDirection: 'column',
         marginTop: 5,
         marginLeft: 10,
+        padding: 10
     },
     descricao: {
         fontWeight: 'bold',

@@ -1,27 +1,38 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import { View, ActivityIndicator } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { getUser, deleteUser } from '../utils/asyncStorage';
+import { useFocusEffect } from '@react-navigation/core';
 
 export default function AuthLoading({ navigation }) {
-    useEffect(() => {
-        async function handleUserNextScreen() {
-            const userToken = await AsyncStorage.getItem('@App:token');
+    useFocusEffect(
+        React.useCallback(() => {
 
-            const user = JSON.parse(userToken);
-            if (userToken) {
-                navigation.navigate('Produtos', {
-                    user: user.user.id,
-                    estabelecimento: user.user.estabelecimento.id
+            const handleUserLoginScreen = () => {
+                deleteUser().then(() => {
+                    navigation.navigate('Login');
                 });
-            } else {
-                navigation.navigate('Login');
-            }
-        }
+            };
 
-        handleUserNextScreen();
-    }, []);
+            const handleUserNextScreen = () => {
+                getUser().then(async (dataToken) => {
+                    if (dataToken) {
+                        try {
+                            const user = JSON.parse(dataToken);
+                            navigation.navigate('Produtos', {
+                                user: user.user.id,
+                                estabelecimento: user.user.estabelecimento.id
+                            });
+                        } catch (e) {
+                        }
+                    } else {
+                        handleUserLoginScreen();
+                    }
+                });
+            }
+            handleUserNextScreen();
+        }, [])
+    );
 
     return (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

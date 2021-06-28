@@ -21,31 +21,44 @@ import { TextInputMask } from 'react-native-masked-text';
 const fieldValidation = yup.object().shape({
     descricao: yup
         .string()
-        .required('O email não pode ser vazio')
-        .min(2, 'A senha deve conter pelo menos 2 dígitos'),
+        .required('A descrição não pode ser vazia.')
+        .min(2, 'A descrição deve conter pelo menos 2 dígitos.'),
     observacao: yup
         .string()
-        .required('A observação não pode ser vazia'),
+        .required('A observação não pode ser vazia.')
+        .min(2, 'A observaçãp deve conter pelo menos 2 dígitos.'),
     preco: yup
-        .string()
-        .required('O preço não pode ser vazio')
-        .min(2, 'O preço deve conter pelo menos 6 dígitos'),
+        .number()
+        .required('O preço não pode ser vazio.')
+        .min(1, 'O preço deve ser maior que R$1,00'),
     desconto: yup
-        .string()
-        .min(2, 'O desconto deve conter pelo menos 2 dígitos')
-})
+        .number()
+        .min(1, 'O desconto deve ser maior que R$1,00.')
+        .default(0)
+        .test({
+            name: 'max',
+            exclusive: false,
+            params: {},
+            message: 'O ${path} deve ser menor que o preço',
+            test: (value, parent) => {
+                return (value || 0) < parseFloat(parent.parent.preco);
+            }
+        }),
+});
 
 export default function CadastroProduto({ route, navigation }) {
-    const { register, setValue, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(fieldValidation) });
     const id = route.params?.itemProduto?.id || false;
-    const item_produto = route.params?.itemProduto || false;
+    const itemProduto = route.params?.itemProduto || false;
     const { id_user, base64 } = route.params;
-
     const [imagem, setImagem] = useState('');
+    const { register, setValue, handleSubmit, formState: { errors }, getValues } = useForm({
+        defaultValues: itemProduto || {},
+        resolver: yupResolver(fieldValidation)
+    });
 
     useFocusEffect(
         React.useCallback(() => {
-            const teste = base64 ? base64 : item_produto.imagem || undefined;
+            const teste = base64 ? base64 : itemProduto.imagem || undefined;
             setImagem(teste);
         }, [base64])
     );
@@ -54,13 +67,13 @@ export default function CadastroProduto({ route, navigation }) {
         register('descricao')
         register('observacao')
         register('preco')
-        register('descono')
+        register('desconto')
     }, [register])
 
     const handleCadastrar = async params => {
         if (id) {
             setImagem(base64);
-            const { data } = await editarProduto(item_produto.id, {
+            await editarProduto(itemProduto.id, {
                 descricao: params.descricao,
                 observacao: params.observacao,
                 preco: params.preco,
@@ -69,11 +82,10 @@ export default function CadastroProduto({ route, navigation }) {
             });
         } else {
             const estabelecimento = await getEstabelecimentoByUserId(id_user);
-            console.log(estabelecimento);
             if (estabelecimento.status === 200) {
                 const id_estabelecimento = estabelecimento.data.id;
                 setImagem(base64);
-                const data = await registrarProduto({
+                await registrarProduto({
                     descricao: params.descricao,
                     observacao: params.observacao,
                     preco: params.preco,
@@ -97,14 +109,16 @@ export default function CadastroProduto({ route, navigation }) {
             <TextField
                 label={"Descrição"}
                 error={errors?.descricao}
-                placeholder={"Descrição"}
+                placeholder={"descrição"}
                 onChangeText={text => setValue('descricao', text)}
+                defaultValue={getValues().descricao || ''}
             />
             <TextField
                 label={"Observações"}
                 error={errors?.observacao}
-                placeholder={"Observações: tamanhos, cores..."}
+                placeholder={"tamanhos, cores..."}
                 onChangeText={text => setValue('observacao', text)}
+                defaultValue={getValues().observacao || ''}
             />
             <View style={styles.containerValor}>
                 <View style={styles.inputValor}>
@@ -119,9 +133,10 @@ export default function CadastroProduto({ route, navigation }) {
                         }}
                         label={"Preço"}
                         error={errors?.preco}
-                        placeholder={"Preço"}
+                        placeholder={"R$"}
                         includeRawValueInChangeText={true}
-                        onChangeText={(mask, text) => { console.log(text); setValue('preco', text) }}
+                        onChangeText={(mask, text) => setValue('preco', text)}
+                        value={getValues().preco || 0}
                     />
                 </View>
                 <View style={styles.inputValor}>
@@ -134,33 +149,32 @@ export default function CadastroProduto({ route, navigation }) {
                             unit: 'R$',
                             suffixUnit: ''
                         }}
-                        label={"Desconto"}
+                        label={"Valor de Desconto"}
                         error={errors?.desconto}
-                        placeholder={"Desconto"}
+                        placeholder={"R$"}
                         includeRawValueInChangeText={true}
                         onChangeText={(mask, text) => setValue('desconto', text)}
+                        value={getValues().desconto || 0}
                     />
                 </View>
             </View>
 
             <View style={styles.container}>
                 <Text style={styles.label}>Imagem</Text>
-                {imagem ?
-                    <View style={[styles.anexo, styles.imagem]}>
+                <View style={[styles.anexo, styles.imagem]}>
+                    {imagem ?
                         <Image
                             source={{ uri: `data:image/png;base64,${imagem}` }}
                             style={{ height: "100%", width: "100%" }}
                         />
-                    </View>
-                    :
-                    <View style={[styles.anexo, styles.imagem]}>
+                        :
                         <Icon
                             style={styles.icon} name="camera" size={80} color='#555'
                             onPress={() => navigation.navigate('Camera', {
                                 route: 'Cadastro Produto'
                             })} />
-                    </View>
-                }
+                    }
+                </View>
             </View>
 
             <GradientButton buttonStyle={styles.buttonSalvar}>
@@ -254,7 +268,7 @@ const styles = StyleSheet.create({
     },
     registrar: {
         fontFamily: 'Poppins-Regular',
-        fontSize: 22
+        fontSize: 20
     },
     buttonSalvar: {
         padding: 8,

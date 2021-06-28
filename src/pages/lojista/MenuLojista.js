@@ -9,8 +9,6 @@ const MenuLojista = ({ route, navigation }) => {
     const openMenu = () => setVisible(true);
     const closeMenu = () => setVisible(false);
 
-    console.log(route.params)
-
     const handleEditarEstabeleciemnto = async () => {
         const { data } = await getEstabelecimentoByUserId(route.params.user);
         closeMenu();

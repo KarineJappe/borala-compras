@@ -7,7 +7,8 @@ import {
     TextInput,
     TouchableOpacity,
     KeyboardAvoidingView,
-    ScrollView
+    ScrollView,
+    Alert
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CommonActions } from '@react-navigation/native';
@@ -29,12 +30,9 @@ async function saveUser(user) {
 
 const Cadastro = ({ route, navigation }) => {
     const estabelecimento = route.params?.estabelecimento || false;
-    const user = route.params?.user || false;
     const { id_user, base64 } = route.params || false;
-
     const [imagem, setImagem] = useState(estabelecimento?.imagem || '');
     const [arrayCategorias, setArrayCategorias] = useState([]);
-    const [categoria, setCategoria] = useState('');
 
     const { register, setValue, handleSubmit, formState: { errors }, getValues } = useForm({
         defaultValues: estabelecimento || {},
@@ -78,60 +76,78 @@ const Cadastro = ({ route, navigation }) => {
         setArrayCategorias(select);
     };
 
-    const handleRegistrar = async params => {
-        let id_estabelecimento = null;
-        let user_id = id_user;
+    const handleSalvar = params => {
         if (estabelecimento) {
-            await editarEstabelecimento(estabelecimento.id, {
-                razao_social: params.razao_social,
-                nome_fantasia: params.nome_fantasia,
-                cnpj: params.cnpj,
-                endereco: params.endereco,
-                telefone: params.telefone,
-                imagem,
-                id_categoria: categoria
-            });
-            navigation.dispatch(
-                CommonActions.navigate({
-                    name: 'Produtos',
-                    params: {
-                        user: id_user,
-                        estabelecimento: estabelecimento.id
-                    },
-                })
-            );
-            return ''
+            handleEditar(params);
+        } else {
+            handleCadastrar(params);
         }
-        console.log(params);
-        const regUsuario = await registrarUsuario({ email: params.email, password: params.password });
-        if (regUsuario.status === 201 || 200) {
-            user_id = regUsuario.data.user.id;
-            const { data } = await registrarEstabelecimento({
-                razao_social: params.razao_social,
-                nome_fantasia: params.nome_fantasia,
-                cnpj: params.cnpj,
-                endereco: params.endereco,
-                telefone: params.telefone,
-                id_categoria: params.categoria,
-                imagem,
-                user_id,
-            });
+    };
 
-            console.log(data);
-            id_estabelecimento = data.retorno;
+    const handleEditar = async params => {
+        await editarEstabelecimento(estabelecimento.id, {
+            razao_social: params.razao_social,
+            nome_fantasia: params.nome_fantasia,
+            cnpj: params.cnpj,
+            endereco: params.endereco,
+            telefone: params.telefone,
+            id_categoria: params.categoria,
+            imagem,
+        });
+        navigation.dispatch(
+            CommonActions.navigate({
+                name: 'Produtos',
+                params: {
+                    user: id_user,
+                    estabelecimento: estabelecimento.id
+                },
+            })
+        );
+    };
 
-            const logUsuario = await login({ email: params.email, password: params.password });
-            await saveUser(logUsuario.data);
-            navigation.dispatch(
-                CommonActions.navigate({
-                    name: 'Produtos',
-                    params: {
-                        user: user_id,
-                        estabelecimento: id_estabelecimento
-                    },
-                })
-            );
-        };
+    const handleCadastrar = async params => {
+        try {
+            let id_estabelecimento = null;
+            let user_id = id_user;
+
+            const dataUser = await registrarUsuario({ email: params.email, password: params.password });
+            if (dataUser.status === 201 || dataUser.status === 200) {
+                user_id = dataUser.data.user.id;
+
+                const { data } = await registrarEstabelecimento({
+                    razao_social: params.razao_social,
+                    nome_fantasia: params.nome_fantasia,
+                    cnpj: params.cnpj,
+                    endereco: params.endereco,
+                    telefone: params.telefone,
+                    id_categoria: params.categoria,
+                    imagem,
+                    user_id,
+                });
+
+                idEstabelecimento = data.retorno;
+
+                const logUsuario = await login({ email: params.email, password: params.password });
+                await saveUser(logUsuario.data);
+                navigation.dispatch(
+                    CommonActions.navigate({
+                        name: 'Produtos',
+                        params: {
+                            user: user_id,
+                            estabelecimento: id_estabelecimento
+                        },
+                    })
+                );
+            } else if (dataUser.status === 409) {
+                Alert.alert(
+                    'Aviso',
+                    'Não foi possível efetuar o cadastro. E-mail já cadastrado. Por favor, verifique os dados e tente novamente.',
+                    [{ text: 'OK' }],
+                    { cancelable: false },
+                );
+            }
+        } catch (e) {
+        }
     };
 
     return (
@@ -155,23 +171,15 @@ const Cadastro = ({ route, navigation }) => {
                         onChangeText={text => setValue('nome_fantasia', text)}
                         defaultValue={getValues().nome_fantasia || ''}
                     />
-                    {/* 
-                    <TextField
-                        label={"Cnpj"}
-                        error={errors?.cnpj}
-                        placeholder={"Cnpj"}
-                        onChangeText={text => setValue('cnpj', text)}
-                        defaultValue={getValues().cnpj || ''}
-                    /> */}
 
                     <TextMaskField
                         type={'cnpj'}
                         label={"Cnpj"}
-                        placeholder={"Cnpj"}
                         error={errors?.cnpj}
+                        placeholder={"Cnpj"}
                         includeRawValueInChangeText={true}
                         onChangeText={(mask, text) => setValue('cnpj', text)}
-                        defaultValue={getValues().cnpj || ''}
+                        value={getValues().cnpj || ''}
                     />
 
                     <TextField
@@ -194,31 +202,17 @@ const Cadastro = ({ route, navigation }) => {
                         error={errors?.telefone}
                         includeRawValueInChangeText={true}
                         onChangeText={(mask, text) => setValue('telefone', text)}
-                        defaultValue={getValues().telefone || ''}
+                        value={getValues().telefone || ''}
                     />
-
-                    {/* <View style={styles.container}>
-                        <Text style={styles.label}>Categoria</Text>
-                        <View style={styles.input}>
-                            <RNPickerSelect
-                                placeholder={{ label: 'Seleciona uma categoria', value: null }}
-                                style={pickerSelectStyles}
-                                onValueChange={setCategoria}
-                                items={arrayCategorias}
-                                value={categoria}
-                            />
-                        </View>
-                    </View> */}
 
                     <TextSelectField
                         label={"Categoria"}
                         error={errors?.categoria}
-                        placeholder={{ label: 'Seleciona uma categoria' }}
+                        placeholder={{ label: 'Selecione uma categoria.' }}
                         style={pickerSelectStyles}
                         onValueChange={text => setValue('categoria', text)}
                         items={arrayCategorias}
-                    // onChangeText={text => setValue(categoria, text)}
-                    // value={categoria}
+                        value={estabelecimento ? getValues().id_categoria || '' : undefined}
                     />
 
                     {estabelecimento ?
@@ -263,9 +257,9 @@ const Cadastro = ({ route, navigation }) => {
                     </View>
 
                     <GradientButton buttonStyle={styles.buttonEntrar}>
-                        <TouchableOpacity onPress={handleSubmit(handleRegistrar)}>
+                        <TouchableOpacity onPress={handleSubmit(handleSalvar)}>
                             <Text style={styles.registrar}>
-                                Registrar
+                                {estabelecimento ? 'Editar' : 'Cadastrar'}
                             </Text>
                         </TouchableOpacity>
                     </GradientButton>
@@ -309,7 +303,6 @@ const TextSelectField = ({ error, label, ...inputProps }) => (
     </View>
 );
 
-
 export default Cadastro;
 
 const styles = StyleSheet.create({
@@ -350,7 +343,6 @@ const styles = StyleSheet.create({
         marginBottom: 10
     },
     anexo: {
-        // flex: 1,
         alignItems: 'center',
         justifyContent: 'center'
     },
@@ -375,33 +367,12 @@ const styles = StyleSheet.create({
     },
     registrar: {
         fontFamily: 'Poppins-Regular',
-        fontSize: 22
+        fontSize: 20
     },
-
-    // button: {
-    //     padding: 5,
-    //     borderRadius: 10,
-    //     width: 350,
-    //     height: 40,
-    //     marginTop: 20,
-    //     backgroundColor: '#ffff',
-    //     color: 'black',
-    //     fontFamily: 'Poppins-Regular',
-    //     textAlign: 'left',
-    //     fontSize: 15
-    // },
-    // anexo: {
-    //     flex: 1,
-    //     alignItems: 'center',
-    //     justifyContent: 'center'
-    // },
-    // icon: {
-    //     alignItems: 'center'
-    // },
 });
 
 const pickerSelectStyles = StyleSheet.create({
     inputAndroid: {
         color: 'black',
     }
-})
+});

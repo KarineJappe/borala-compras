@@ -3,6 +3,9 @@ import request from './api'
 export const getEstabelecimento = async () =>
     await request('get', '/estabelecimentos');
 
+export const getEstabelecimentoById = async id =>
+    await request('get', `/estabelecimentos/${id}`);
+
 export const getEstabelecimentoByUserId = async id_user =>
     await request('get', `/estabelecimentos/user/${id_user}`);
 

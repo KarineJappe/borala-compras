@@ -2,7 +2,7 @@ import React from 'react'
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { setTopLevelNavigator } from './utils/asyncStorage';
+import { navigationRef } from './utils/asyncStorage';
 import Icon from 'react-native-vector-icons/Fontisto';
 
 import Gradient from './utils/gradientHeader';
@@ -88,7 +88,7 @@ function Stacks() {
 
 export default function Routes() {
     return (
-        <NavigationContainer ref={navigationRef => { setTopLevelNavigator(navigationRef) }}>
+        <NavigationContainer ref={navigationRef}>
             <Stacks />
         </NavigationContainer>
     );

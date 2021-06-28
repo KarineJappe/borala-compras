@@ -11,24 +11,26 @@ import { FAB } from 'react-native-paper';
 import ItemProduto from '../../utils/itemProduto';
 
 export default function Produtos({ route, navigation }) {
+    const estabelecimento = route.params?.estabelecimento;
     const [data, setData] = useState([]);
 
-    const carregaProdutos = async () => {
+    const buscaProdutos = async () => {
         try {
-            const { data } = await getProdutosByEstabelecimentoId(route.params.estabelecimento);
-            setData(data.data);
+            if (estabelecimento) {
+                const { data } = await getProdutosByEstabelecimentoId(estabelecimento);
+                setData(data);
+            }
         } catch (exception) {
-            // console.log(exception);
         }
-    }
+    };
 
     useFocusEffect(
         React.useCallback(() => {
-            carregaProdutos();
-        }, [])
+            buscaProdutos();
+        }, [estabelecimento])
     );
 
-    const renderListItem = ({ item }) => <ItemProduto produto={item} carregaProdutos={carregaProdutos} navegar={navigation} />;
+    const renderListItem = ({ item }) => <ItemProduto produto={item} carregaProdutos={buscaProdutos} navegar={navigation} />;
     return (
         <View style={styles.container}>
 
@@ -47,7 +49,7 @@ export default function Produtos({ route, navigation }) {
             />
 
             <FAB
-                label="Cadasttrar"
+                label="Cadastrar"
                 style={styles.buttonCadastrar}
                 icon="plus"
                 onPress={() => navigation.navigate('Cadastro Produto', {
@@ -63,9 +65,6 @@ const styles = StyleSheet.create({
         display: 'flex',
         flex: 1,
         backgroundColor: '#ddd',
-    },
-    containerButton: {
-        flexDirection: 'row-reverse'
     },
     listaProdutos: {
         flex: 1,
