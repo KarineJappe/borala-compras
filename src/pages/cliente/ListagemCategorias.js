@@ -28,20 +28,20 @@ export default function Categorias({ navigation }) {
                 id_categoria: data.id
             })}
         >
-            <>
-                <View style={styles.anexo}>
-                    {data.imagem ?
-                        <Image
-                            source={{ uri: `data:image/png;base64,${data.imagem}` }}
-                            style={{ height: "100%", width: "100%" }}
-                        />
-                        : <Icon
-                            style={styles.icon} name="camera" size={80} color='#555'
-                        />
-                    }
-                </View>
+            <View style={styles.anexo}>
+                {data.imagem ?
+                    <Image
+                        source={{ uri: `data:image/png;base64,${data.imagem}` }}
+                        style={styles.imagem}
+                    />
+                    : <Icon
+                        style={styles.icon} name="camera" size={80} color='#555'
+                    />
+                }
+            </View>
+            <View style={styles.info}>
                 <Text style={styles.title}>{data.descricao}</Text>
-            </>
+            </View>
         </TouchableOpacity>
     );
 
@@ -70,7 +70,6 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         marginHorizontal: 20,
         marginVertical: 10
-
     },
     container: {
         flex: 1,
@@ -78,8 +77,7 @@ const styles = StyleSheet.create({
     },
     item: {
         backgroundColor: '#ddd',
-        padding: 10,
-        borderRadius: 10,
+        borderRadius: 5,
         marginVertical: 8,
         marginHorizontal: 16,
     },
@@ -89,13 +87,17 @@ const styles = StyleSheet.create({
     anexo: {
         flex: 1,
         alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 10,
-        height: 100,
-        backgroundColor: '#ffff',
-        color: 'black',
-        fontFamily: 'Poppins-Regular',
-        fontSize: 15
+        justifyContent: 'center'
+    },
+    imagem: {
+        height: 120,
+        width: '100%',
+        borderTopLeftRadius: 5,
+        borderTopRightRadius: 5,
+        alignSelf: 'center',
+    },
+    info: {
+        padding: 10,
     },
     icon: {
         alignItems: 'center'

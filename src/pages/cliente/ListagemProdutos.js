@@ -36,19 +36,21 @@ export default function Categorias({ route }) {
     const Item = ({ data }) => (
         <View style={styles.container}>
             <View style={styles.containerItem}>
-                <View style={styles.imagem}>
-                    {data.imagem ?
-                        <Image
-                            source={{ uri: `data:image/png;base64,${data.imagem}` }}
-                            style={{ height: "100%", width: "100%" }}
-                        />
-                        :
-                        <Icon style={styles.icon} name="camera" size={80} color='#555' />
-                    }
-                </View>
+                {data.imagem ?
+                    <Image
+                        source={{ uri: `data:image/png;base64,${data.imagem}` }}
+                        style={styles.imagem}
+                    />
+                    :
+                    <Icon style={styles.icon} name="camera" size={80} color='#555' />
+                }
                 <View style={styles.info}>
-                    <Text style={styles.title}>{data.descricao}</Text>
-                    <Text>Preco {data.preco}</Text>
+                    <Text style={styles.descricao}>{data.descricao}</Text>
+                    <Text>
+                        <Text style={{ color: 'green' }}>R${data.preco} </Text>
+                        |
+                        <Text style={{ color: 'red' }}> R${data.desconto}</Text>
+                    </Text>
                 </View>
             </View >
         </View>
@@ -59,7 +61,7 @@ export default function Categorias({ route }) {
     );
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.containerFlatList}>
             <FlatList
                 style={styles.listaProdutos}
                 data={data}
@@ -78,37 +80,47 @@ export default function Categorias({ route }) {
 }
 
 const styles = StyleSheet.create({
+    containerFlatList: {
+        flex: 1,
+        display: 'flex',
+        elevation: 5,
+    },
     container: {
         flex: 1,
         flexDirection: 'column',
         elevation: 5,
     },
+    listaProdutos: {
+        flex: 1,
+    },
     containerItem: {
         backgroundColor: '#eee',
         borderRadius: 3,
         margin: 10,
-        padding: 10
-    },
-    listaProdutos: {
-        flex: 1,
     },
     flatList: {
         flex: 1,
-        // justifyContent: 'space-around'
-    },
-    title: {
-        fontSize: 20,
+        justifyContent: 'space-around'
     },
     imagem: {
-        height: 150,
-        width: 150,
-        borderRadius: 5,
-        // alignSelf: 'center',
-        alignItems: 'center',
-        justifyContent: 'center',
+        height: 120,
+        width: '100%',
+        borderTopLeftRadius: 5,
+        borderTopRightRadius: 5,
+        alignSelf: 'center',
     },
     icon: {
         alignItems: 'center'
+    },
+    info: {
+        flexDirection: 'column',
+        marginTop: 5,
+        marginLeft: 5,
+        padding: 10
+    },
+    descricao: {
+        fontWeight: 'bold',
+        fontSize: 14,
     },
     message: {
         alignItems: 'center',

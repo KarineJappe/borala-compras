@@ -42,19 +42,26 @@ export default function Categorias({ route, navigation }) {
                 id_estabelecimento: data.id
             })}
         >
-            <View style={[styles.anexo, styles.button]}>
+            <View style={styles.anexo}>
                 {data.imagem ?
                     <Image
                         source={{ uri: `data:image/png;base64,${data.imagem}` }}
-                        style={{ height: "100%", width: "100%" }}
+                        style={styles.imagem}
                     />
                     : <Icon
                         style={styles.icon} name="camera" size={80} color='#555'
                     />
                 }
             </View>
-            <Text style={styles.title}>{data.nome_fantasia}</Text>
-            <Text>{data.endereco}</Text>
+            <View style={styles.info}>
+                <Text style={styles.title}>{data.nome_fantasia}</Text>
+                <Text> Endereço: {data.endereco}</Text>
+                <Text>
+                    <Text> Telefone: {data.telefone} </Text>
+                    <Icon style={styles.iconWhats} name="whatsapp" size={20} color='green' />
+                </Text>
+            </View>
+
         </TouchableOpacity>
     );
 
@@ -80,28 +87,29 @@ const styles = StyleSheet.create({
     },
     item: {
         backgroundColor: '#ddd',
-        padding: 10,
-        borderRadius: 10,
+        borderRadius: 5,
         marginVertical: 8,
         marginHorizontal: 16,
     },
     title: {
         fontSize: 20,
     },
-    button: {
-        borderRadius: 10,
-        height: 100,
-        backgroundColor: '#ffff',
-        color: 'black',
-        fontFamily: 'Poppins-Regular',
-        fontSize: 15
-    },
     anexo: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center'
     },
+    imagem: {
+        height: 120,
+        width: '100%',
+        borderTopLeftRadius: 5,
+        borderTopRightRadius: 5,
+        alignSelf: 'center',
+    },
     icon: {
         alignItems: 'center'
     },
+    info: {
+        padding: 10,
+    }
 });

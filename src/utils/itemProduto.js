@@ -64,7 +64,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#eee',
         borderRadius: 5,
         margin: 10,
-        // padding: 10
     },
     containerButtons: {
         flexDirection: 'row',
@@ -91,12 +90,11 @@ const styles = StyleSheet.create({
     info: {
         flexDirection: 'column',
         marginTop: 5,
-        marginLeft: 10,
+        marginLeft: 5,
         padding: 10
     },
     descricao: {
         fontWeight: 'bold',
         fontSize: 14,
     },
-
 });
