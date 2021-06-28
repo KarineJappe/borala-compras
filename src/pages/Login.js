@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
     Image,
@@ -15,27 +15,44 @@ import { CommonActions } from '@react-navigation/native';
 import { login } from '../services/usuario';
 import Gradient from '../utils/gradientFundo';
 import GradientButton from '../utils/gradientButton';
-import PropTypes from 'prop-types'
+import PropTypes from 'prop-types';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+
+const fieldValidation = yup.object().shape({
+    email: yup
+        .string()
+        .required('O email não pode ser vazio.'),
+    password: yup
+        .string()
+        .required('A senha não pode ser vazia.')
+        .min(6, 'A senha deve conter pelo menos 6 dígitos'),
+});
 
 export default function Login({ navigation }) {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState(null);
+    const { register, setValue, handleSubmit, formState: { errors } } = useForm({
+        resolver: yupResolver(fieldValidation)
+    });
 
     async function saveUser(user) {
         await AsyncStorage.setItem('@App:token', JSON.stringify(user))
-    }
+    };
 
-    async function signIn() {
-        if (email.length === 0) return
+    useEffect(() => {
+        register('email')
+        register('password')
+    }, [register]);
 
+    const signIn = async params => {
+        if (params.email.length === 0) return
         setLoading(true);
-
         try {
             const credentials = {
-                email: email,
-                password: password
+                email: params.email,
+                password: params.password
             }
             const response = await login(credentials);
             const user = response.data;
@@ -52,7 +69,6 @@ export default function Login({ navigation }) {
             );
             setLoading(false)
         } catch (err) {
-            console.log("Erro" + err);
             setLoading(false)
             setErrorMessage('Usuário não existe')
         }
@@ -71,30 +87,23 @@ export default function Login({ navigation }) {
 
                 {!!errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
 
-                <View style={styles.container}>
-                    <Text style={styles.label}>Email</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Digite seu email.."
-                        icon="mail"
-                        value={email}
-                        onChangeText={email => setEmail(email)}
-                    />
-                </View>
+                <TextField
+                    label={"Email"}
+                    error={errors?.email}
+                    placeholder="Digite seu email.."
+                    onChangeText={email => setValue('email', email)}
+                />
 
-                <View style={styles.container}>
-                    <Text style={styles.label}>Senha</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Senha..."
-                        value={password}
-                        onChangeText={password => setPassword(password)}
-                        secureTextEntry={true}
-                    />
-                </View>
+                <TextField
+                    label={"Senha"}
+                    error={errors?.password}
+                    placeholder="Senha..."
+                    onChangeText={password => setValue('password', password)}
+                    secureTextEntry={true}
+                />
 
                 <GradientButton buttonStyle={styles.buttonEntrar}>
-                    <TouchableOpacity onPress={signIn}>
+                    <TouchableOpacity onPress={handleSubmit(signIn)}>
                         {loading ? (
                             <ActivityIndicator size="small" color="#FFF" />
                         ) : (
@@ -112,6 +121,18 @@ export default function Login({ navigation }) {
         </KeyboardAvoidingView>
     );
 }
+
+const TextField = ({ error, label, ...inputProps }) => (
+    <View style={styles.container}>
+        <Text style={styles.label}>{label}</Text>
+        <TextInput
+            style={[styles.input, !!error && styles.borderError]}
+            {...inputProps}
+        />
+        {!!error && <Text style={styles.errorMessage}>{error.message}</Text>}
+    </View>
+);
+
 Login.navigationOptions = () => {
     return {
         header: null,
@@ -123,6 +144,7 @@ Login.propTypes = {
         dispatch: PropTypes.func,
     }).isRequired,
 }
+
 const styles = StyleSheet.create({
     logo: {
         marginTop: 100,
@@ -132,6 +154,16 @@ const styles = StyleSheet.create({
         width: '80%',
         borderRadius: 10,
         marginBottom: 10
+    },
+    borderError: {
+        borderWidth: 1,
+        borderColor: 'rgba(200,0,50,1)'
+    },
+    errorMessage: {
+        fontSize: 10,
+        color: 'rgba(200,0,50,1)',
+        textAlign: 'center',
+        marginTop: 5
     },
     viewButton: {
         flexDirection: 'row',
