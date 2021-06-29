@@ -21,9 +21,10 @@ export default function AuthLoading({ navigation }) {
                             const user = JSON.parse(dataToken);
                             navigation.navigate('Produtos', {
                                 user: user.user.id,
-                                estabelecimento: user.user.estabelecimento.id
+                                estabelecimento: user.user.estabelecimento.id || null
                             });
                         } catch (e) {
+                            handleUserLoginScreen();
                         }
                     } else {
                         handleUserLoginScreen();

@@ -26,14 +26,13 @@ const fieldValidation = yup.object().shape({
     observacao: yup
         .string()
         .required('A observação não pode ser vazia.')
-        .min(2, 'A observaçãp deve conter pelo menos 2 dígitos.'),
+        .min(2, 'A observação deve conter pelo menos 2 dígitos.'),
     preco: yup
         .number()
         .required('O preço não pode ser vazio.')
         .min(1, 'O preço deve ser maior que R$1,00'),
     desconto: yup
         .number()
-        .min(1, 'O desconto deve ser maior que R$1,00.')
         .default(0)
         .test({
             name: 'max',

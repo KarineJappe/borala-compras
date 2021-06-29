@@ -30,9 +30,17 @@ export default function ItemProduto({ produto, carregaProdutos, navegar }) {
                 <View style={styles.info}>
                     <Text style={styles.descricao}>{produto.descricao}</Text>
                     <Text>
-                        <Text style={{ color: 'green' }}>R${produto.preco} </Text>
-                        |
-                        <Text style={{ color: 'red' }}> R${produto.desconto}</Text>
+                        {
+                            produto.desconto > 0
+                                ?
+                                <>
+                                    <Text style={{ color: 'green', textDecorationLine: 'line-through' }}>R${produto.preco} </Text>
+                                    |
+                                    <Text style={{ color: 'red' }}> R${Number(produto.preco - (produto.desconto || 0)).toFixed(2)}</Text>
+                                </>
+                                :
+                                <Text style={{ color: 'green' }}>R${produto.preco}</Text>
+                        }
                     </Text>
                 </View>
             </View>

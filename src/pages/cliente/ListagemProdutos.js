@@ -47,9 +47,17 @@ export default function Categorias({ route }) {
                 <View style={styles.info}>
                     <Text style={styles.descricao}>{data.descricao}</Text>
                     <Text>
-                        <Text style={{ color: 'green' }}>R${data.preco} </Text>
-                        |
-                        <Text style={{ color: 'red' }}> R${data.desconto}</Text>
+                        {
+                            data.desconto > 0
+                                ?
+                                <>
+                                    <Text style={{ color: 'green', textDecorationLine: 'line-through' }}>R${data.preco} </Text>
+                                    |
+                                    <Text style={{ color: 'red' }}> R${Number(data.preco - (data.desconto || 0)).toFixed(2)}</Text>
+                                </>
+                                :
+                                <Text style={{ color: 'green' }}>R${data.preco}</Text>
+                        }
                     </Text>
                 </View>
             </View >
