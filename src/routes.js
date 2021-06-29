@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -18,6 +18,7 @@ import Produtos from './pages/cliente/ListagemProdutos';
 import Menu from './pages/lojista/MenuLojista'
 import AuthLoading from './pages/AuthLoading';
 import ItemProduto from './utils/itemProduto';
+import { StatusBar } from 'react-native';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -89,6 +90,9 @@ function Stacks() {
 export default function Routes() {
     return (
         <NavigationContainer ref={navigationRef}>
+            <StatusBar
+                backgroundColor="rgba(15,136,147,1)"
+            />
             <Stacks />
         </NavigationContainer>
     );
