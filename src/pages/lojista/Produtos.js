@@ -33,14 +33,12 @@ export default function Produtos({ route, navigation }) {
     const renderListItem = ({ item }) => <ItemProduto produto={item} carregaProdutos={buscaProdutos} navegar={navigation} />;
     return (
         <View style={styles.container}>
-
             <FlatList
                 style={styles.listaProdutos}
                 data={data}
                 keyExtractor={item => item.id}
                 renderItem={renderListItem}
                 numColumns={2}
-                columnWrapperStyle={styles.flatList}
                 ListEmptyComponent={
                     <View style={styles.message}>
                         <Text>Nenhum produto cadastrado. </Text>
@@ -69,17 +67,14 @@ const styles = StyleSheet.create({
     listaProdutos: {
         flex: 1,
     },
-    flatList: {
-        flex: 1,
-        justifyContent: 'space-around'
-    },
     buttonCadastrar: {
         position: 'absolute',
         elevation: 3,
         margin: 16,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(15,136,147,1)'
+        backgroundColor: 'rgba(15,136,147,1)',
+        fontFamily: 'Poppins-Regular',
     },
     message: {
         alignItems: 'center',

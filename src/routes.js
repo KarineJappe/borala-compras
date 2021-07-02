@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator, HeaderBackButton } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { navigationRef } from './utils/asyncStorage';
 import Icon from 'react-native-vector-icons/Fontisto';
@@ -17,7 +17,6 @@ import Estabelecimentos from './pages/cliente/ListagemEstabelecimentos';
 import Produtos from './pages/cliente/ListagemProdutos';
 import Menu from './pages/lojista/MenuLojista'
 import AuthLoading from './pages/AuthLoading';
-import ItemProduto from './utils/itemProduto';
 import { StatusBar } from 'react-native';
 
 const Stack = createStackNavigator();
@@ -56,7 +55,8 @@ function Tabs() {
                 },
             })}
             tabBarOptions={{
-                activeTintColor: 'black',
+                showLabel: false,
+                activeTintColor: 'rgba(15,136,147,1)',
                 inactiveTintColor: 'gray',
             }}
         >
@@ -73,16 +73,23 @@ function Stacks() {
             <Stack.Screen options={{ headerShown: false }} name="Cliente" component={Tabs} />
             <Stack.Screen options={{ headerShown: false }} name="AuthLoading" component={AuthLoading} />
             <Stack.Screen options={{ headerShown: false }} name="Home" component={Home} />
-            <Stack.Screen options={{ headerShown: false }} name="Login" component={Login} />
+            <Stack.Screen options={({ navigation }) => ({
+                headerTransparent: true,
+                headerTitle: false,
+                headerLeft: () => (
+                    <HeaderBackButton
+                        onPress={() => navigation.navigate('Home')}
+                    />
+                )
+            })} name="Login" component={Login} />
             <Stack.Screen options={{ headerBackground: () => (<Gradient />), }} name="Cadastro" component={Cadastro} />
             <Stack.Screen options={({ route, navigation }) => ({
                 headerLeft: () => null,
                 headerBackground: () => (<Gradient />),
                 headerRight: () => (<Menu navigation={navigation} route={route} />),
             })} name="Produtos" component={ManterProdutos} />
-            <Stack.Screen options={{ headerBackground: () => (<Gradient />), }} name="Cadastro Produto" component={CadastroProduto} />
-            <Stack.Screen options={{ headerShown: false }} name="Item Prroduto" component={ItemProduto} />
-            <Stack.Screen options={{ headerBackground: () => (<Gradient />), }} name="Camera" component={Camera} />
+            <Stack.Screen options={{ headerBackground: () => (<Gradient />) }} name="Cadastro Produto" component={CadastroProduto} />
+            <Stack.Screen options={{ headerBackground: () => (<Gradient />) }} name="Camera" component={Camera} />
         </Stack.Navigator>
     );
 };
