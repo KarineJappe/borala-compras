@@ -35,7 +35,10 @@ export default function Categorias({ navigation }) {
                         style={styles.imagem}
                     />
                     : <Icon
-                        style={styles.icon} name="camera" size={80} color='#555'
+                        style={styles.icon}
+                        name="camera"
+                        size={80}
+                        color='#555'
                     />
                 }
             </View>
@@ -55,28 +58,23 @@ export default function Categorias({ navigation }) {
                 data={data}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
+                ListEmptyComponent={
+                    <View style={styles.message}>
+                        <Text>Nenhuma categoria cadastrada. </Text>
+                    </View>
+                }
             />
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    card: {
-        borderRadius: 10,
-        backgroundColor: '#ddd',
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        marginHorizontal: 20,
-        marginVertical: 10
-    },
     container: {
         flex: 1,
-        marginTop: StatusBar.currentHeight || 0,
+        backgroundColor: '#ddd',
     },
     item: {
-        backgroundColor: '#ddd',
+        backgroundColor: '#eee',
         borderRadius: 5,
         marginVertical: 8,
         marginHorizontal: 16,
@@ -101,5 +99,9 @@ const styles = StyleSheet.create({
     },
     icon: {
         alignItems: 'center'
+    },
+    message: {
+        alignItems: 'center',
+        marginTop: '50%'
     },
 });

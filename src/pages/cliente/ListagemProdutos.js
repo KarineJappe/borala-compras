@@ -36,27 +36,38 @@ export default function Categorias({ route }) {
     const Item = ({ data }) => (
         <View style={styles.container}>
             <View style={styles.containerItem}>
-                {data.imagem ?
-                    <Image
-                        source={{ uri: `data:image/png;base64,${data.imagem}` }}
-                        style={styles.imagem}
-                    />
-                    :
-                    <Icon style={styles.icon} name="camera" size={80} color='#555' />
-                }
+                <View style={styles.foto} >
+                    {data.imagem ?
+                        <Image
+                            source={{ uri: `data:image/png;base64,${data.imagem}` }}
+                            style={styles.imagem}
+                        />
+                        :
+                        <Icon
+                            name="camera"
+                            size={80}
+                            color='#555'
+                        />
+                    }
+                </View>
                 <View style={styles.info}>
                     <Text style={styles.descricao}>{data.descricao}</Text>
+                    <Text style={styles.observacao}>{
+                        data.observacao ?
+                            data.observacao
+                            :
+                            "Sem observações"}
+                    </Text>
                     <Text>
-                        {
-                            data.desconto > 0
-                                ?
-                                <>
-                                    <Text style={{ color: 'green', textDecorationLine: 'line-through' }}>R${data.preco} </Text>
-                                    |
-                                    <Text style={{ color: 'red' }}> R${Number(data.preco - (data.desconto || 0)).toFixed(2)}</Text>
-                                </>
-                                :
-                                <Text style={{ color: 'green' }}>R${data.preco}</Text>
+                        {data.desconto > 0
+                            ?
+                            <>
+                                <Text style={{ color: 'green', textDecorationLine: 'line-through' }}>R${data.preco} </Text>
+                                |
+                                <Text style={{ color: 'red' }}> R${Number(data.preco - (data.desconto || 0)).toFixed(2)}</Text>
+                            </>
+                            :
+                            <Text style={{ color: 'green' }}>R${data.preco}</Text>
                         }
                     </Text>
                 </View>
@@ -76,7 +87,6 @@ export default function Categorias({ route }) {
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
                 numColumns={2}
-                columnWrapperStyle={styles.flatList}
                 ListEmptyComponent={
                     <View style={styles.message}>
                         <Text>Nenhum produto cadastrado. </Text>
@@ -91,44 +101,49 @@ const styles = StyleSheet.create({
     containerFlatList: {
         flex: 1,
         display: 'flex',
-        elevation: 5,
+        backgroundColor: '#ddd',
+    },
+    listaProdutos: {
+        flex: 1,
     },
     container: {
         flex: 1,
         flexDirection: 'column',
         elevation: 5,
-    },
-    listaProdutos: {
-        flex: 1,
+        maxWidth: '50%',
     },
     containerItem: {
         backgroundColor: '#eee',
-        borderRadius: 3,
+        borderRadius: 5,
         margin: 10,
+        minHeight: 260
     },
-    flatList: {
-        flex: 1,
-        justifyContent: 'space-around'
+    foto: {
+        height: 150,
+        alignItems: 'center',
+        justifyContent: 'center'
     },
     imagem: {
-        height: 120,
+        height: 150,
         width: '100%',
         borderTopLeftRadius: 5,
         borderTopRightRadius: 5,
         alignSelf: 'center',
     },
-    icon: {
-        alignItems: 'center'
-    },
     info: {
         flexDirection: 'column',
-        marginTop: 5,
-        marginLeft: 5,
-        padding: 10
+        flex: 1,
+        padding: 10,
+        display: 'flex',
+        justifyContent: 'space-between'
     },
     descricao: {
         fontWeight: 'bold',
-        fontSize: 14,
+        fontSize: 16,
+    },
+    observacao: {
+        fontSize: 12,
+        marginBottom: 4
     },
     message: {
         alignItems: 'center',
