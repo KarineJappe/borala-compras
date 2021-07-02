@@ -282,7 +282,10 @@ const Cadastro = ({ route, navigation }) => {
                                     />
                                     :
                                     <Icon
-                                        style={styles.icon} name="camera" size={60} color='#555'
+                                        style={styles.icon}
+                                        name="camera"
+                                        size={60}
+                                        color='#555'
                                     />
                                 }
                             </View>

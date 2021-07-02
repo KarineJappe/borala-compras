@@ -165,25 +165,28 @@ export default function CadastroProduto({ route, navigation }) {
 
             <View style={styles.container}>
                 <Text style={styles.label}>Imagem</Text>
-                <View style={styles.imagem}>
-                    {imagem ?
-                        <Image
-                            source={{ uri: `data:image/png;base64,${imagem}` }}
-                            style={{
-                                height: "100%", width: "100%", borderRadius: 8,
-                            }}
-                        />
-                        :
-                        <Icon
-                            name="camera"
-                            size={80}
-                            color='#555'
-                            onPress={() => navigation.navigate('Camera', {
-                                route: 'Cadastro Produto'
-                            })}
-                        />
-                    }
-                </View>
+                <TouchableOpacity onPress={() => navigation.navigate('Camera', {
+                    route: 'Cadastro Produto'
+                })}>
+
+                    <View style={styles.imagem}>
+                        {imagem ?
+                            <Image
+                                source={{ uri: `data:image/png;base64,${imagem}` }}
+                                style={{
+                                    height: "100%", width: "100%", borderRadius: 8,
+                                }}
+                            />
+                            :
+                            <Icon
+                                name="camera"
+                                size={80}
+                                color='#555'
+
+                            />
+                        }
+                    </View>
+                </TouchableOpacity>
             </View>
 
             <TouchableOpacity disabled={loading} style={styles.button} onPress={handleSubmit(handleCadastrar)}>
