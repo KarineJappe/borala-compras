@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+    ActivityIndicator,
     StyleSheet,
     View,
     Text,
@@ -9,7 +10,6 @@ import {
 } from 'react-native';
 import { CommonActions } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import GradientButton from '../../utils/gradientButton';
 import { registrarProduto, editarProduto } from '../../services/produto';
 import { getEstabelecimentoByUserId } from '../../services/estabelecimento';
 import { useFocusEffect } from '@react-navigation/core';
@@ -22,11 +22,12 @@ const fieldValidation = yup.object().shape({
     descricao: yup
         .string()
         .required('A descrição não pode ser vazia.')
-        .min(2, 'A descrição deve conter pelo menos 2 dígitos.'),
+        .min(2, 'A descrição deve conter pelo menos 2 dígitos.')
+        .max(20, 'A descrição deve conter no máximo 20 dígitos.'),
     observacao: yup
         .string()
-        .required('A observação não pode ser vazia.')
-        .min(2, 'A observação deve conter pelo menos 2 dígitos.'),
+        .nullable()
+        .max(40, 'A observação deve conter no máximo 40 dígitos.'),
     preco: yup
         .number()
         .required('O preço não pode ser vazio.')
@@ -46,10 +47,13 @@ const fieldValidation = yup.object().shape({
 });
 
 export default function CadastroProduto({ route, navigation }) {
+    const [loading, setLoading] = useState(false);
     const id = route.params?.itemProduto?.id || false;
     const itemProduto = route.params?.itemProduto || false;
-    const { id_user, base64 } = route.params;
-    const [imagem, setImagem] = useState('');
+    const id_user = route.params?.id_user || false;
+    const base64 = route.params?.base64 || null;
+    const [imagem, setImagem] = useState(null);
+
     const { register, setValue, handleSubmit, formState: { errors }, getValues } = useForm({
         defaultValues: itemProduto || {},
         resolver: yupResolver(fieldValidation)
@@ -70,6 +74,7 @@ export default function CadastroProduto({ route, navigation }) {
     }, [register])
 
     const handleCadastrar = async params => {
+        setLoading(true);
         if (id) {
             setImagem(base64);
             await editarProduto(itemProduto.id, {
@@ -100,22 +105,22 @@ export default function CadastroProduto({ route, navigation }) {
                 name: 'Produtos',
             })
         );
+        setLoading(false);
     };
 
     return (
         <View style={styles.mainContainer}>
-
             <TextField
                 label={"Descrição"}
                 error={errors?.descricao}
-                placeholder={"descrição"}
+                placeholder={"Informe a descrição do produto"}
                 onChangeText={text => setValue('descricao', text)}
                 defaultValue={getValues().descricao || ''}
             />
             <TextField
                 label={"Observações"}
                 error={errors?.observacao}
-                placeholder={"tamanhos, cores..."}
+                placeholder={"Informe a observação (se houver)"}
                 onChangeText={text => setValue('observacao', text)}
                 defaultValue={getValues().observacao || ''}
             />
@@ -160,29 +165,37 @@ export default function CadastroProduto({ route, navigation }) {
 
             <View style={styles.container}>
                 <Text style={styles.label}>Imagem</Text>
-                <View style={[styles.anexo, styles.imagem]}>
+                <View style={styles.imagem}>
                     {imagem ?
                         <Image
                             source={{ uri: `data:image/png;base64,${imagem}` }}
-                            style={{ height: "100%", width: "100%" }}
+                            style={{
+                                height: "100%", width: "100%", borderRadius: 8,
+                            }}
                         />
                         :
                         <Icon
-                            style={styles.icon} name="camera" size={80} color='#555'
+                            name="camera"
+                            size={80}
+                            color='#555'
                             onPress={() => navigation.navigate('Camera', {
                                 route: 'Cadastro Produto'
-                            })} />
+                            })}
+                        />
                     }
                 </View>
             </View>
 
-            <GradientButton buttonStyle={styles.buttonSalvar}>
-                <TouchableOpacity onPress={handleSubmit(handleCadastrar)}>
+            <TouchableOpacity disabled={loading} style={styles.button} onPress={handleSubmit(handleCadastrar)}>
+                {loading ? (
+                    <ActivityIndicator size="small" color="#FFF" />
+                ) : (
                     <Text style={styles.registrar}>
                         {id ? 'Editar' : 'Cadastrar'}
                     </Text>
-                </TouchableOpacity>
-            </GradientButton>
+                )}
+            </TouchableOpacity>
+
         </View>
     );
 };
@@ -212,8 +225,9 @@ const TextMoneyField = ({ error, label, ...inputProps }) => (
 const styles = StyleSheet.create({
     mainContainer: {
         flex: 1,
-        marginTop: '5%',
+        paddingTop: '5%',
         alignItems: 'center',
+        backgroundColor: '#ddd',
     },
     label: {
         fontSize: 14,
@@ -229,10 +243,10 @@ const styles = StyleSheet.create({
     },
     imagem: {
         height: 200,
-        fontSize: 15,
+        borderRadius: 8,
         backgroundColor: '#fff',
-        paddingHorizontal: 8,
-        borderRadius: 8
+        alignItems: 'center',
+        justifyContent: 'center'
     },
     containerValor: {
         flexDirection: 'row',
@@ -257,24 +271,18 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 5
     },
-    anexo: {
-        // flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    icon: {
-        alignItems: 'center'
-    },
     registrar: {
         fontFamily: 'Poppins-Regular',
-        fontSize: 20
+        fontSize: 20,
+        color: '#eee'
     },
-    buttonSalvar: {
-        padding: 8,
+    button: {
+        padding: 10,
         margin: 10,
         borderRadius: 10,
-        marginVertical: 10,
-        color: 'black',
+        width: 150,
+        height: 55,
+        backgroundColor: 'rgba(15,136,147,1)',
         alignItems: 'center',
     }
 });

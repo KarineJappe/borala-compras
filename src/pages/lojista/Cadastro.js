@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+    ActivityIndicator,
     StyleSheet,
     View,
     Text,
@@ -13,7 +14,6 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CommonActions } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import GradientButton from '../../utils/gradientButton';
 import { registrarUsuario, login } from '../../services/usuario';
 import { getCategoria } from '../../services/categoria';
 import { registrarEstabelecimento, editarEstabelecimento } from '../../services/estabelecimento';
@@ -23,16 +23,24 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { createValidationSchema, editValidationSchema } from './validationSchema';
 import RNPickerSelect from 'react-native-picker-select';
 import { TextInputMask } from 'react-native-masked-text';
+import { Dialog, Paragraph, Portal, Button } from 'react-native-paper';
 
 async function saveUser(user) {
     await AsyncStorage.setItem('@App:token', JSON.stringify(user))
 }
 
 const Cadastro = ({ route, navigation }) => {
+    const [loading, setLoading] = useState(false);
+    const [imagem, setImagem] = useState(estabelecimento?.imagem || null);
+    const [arrayCategorias, setArrayCategorias] = useState([]);
+    const [visible, setVisible] = useState(false);
+    const [password, setPassword] = useState(null);
+    const [navParams, setNavParams] = useState({});
+
     const estabelecimento = route.params?.estabelecimento || false;
     const { id_user, base64 } = route.params || false;
-    const [imagem, setImagem] = useState(estabelecimento?.imagem || '');
-    const [arrayCategorias, setArrayCategorias] = useState([]);
+    const showDialog = () => setVisible(true);
+    const hideDialog = () => setVisible(false);
 
     const { register, setValue, handleSubmit, formState: { errors }, getValues } = useForm({
         defaultValues: estabelecimento || {},
@@ -76,6 +84,22 @@ const Cadastro = ({ route, navigation }) => {
         setArrayCategorias(select);
     };
 
+    const navigationToNextScreen = () => {
+        navigation.dispatch(
+            CommonActions.reset({
+                index: 1,
+                routes: [{
+                    name: 'Produtos',
+                    params: {
+                        user: navParams.user,
+                        estabelecimento: navParams.estabelecimento
+                    },
+                }],
+            })
+        );
+        hideDialog();
+    }
+
     const handleSalvar = params => {
         if (estabelecimento) {
             handleEditar(params);
@@ -85,6 +109,7 @@ const Cadastro = ({ route, navigation }) => {
     };
 
     const handleEditar = async params => {
+        setLoading(true);
         await editarEstabelecimento(estabelecimento.id, {
             razao_social: params.razao_social,
             nome_fantasia: params.nome_fantasia,
@@ -94,18 +119,20 @@ const Cadastro = ({ route, navigation }) => {
             id_categoria: params.categoria,
             imagem,
         });
-        navigation.dispatch(
-            CommonActions.navigate({
-                name: 'Produtos',
-                params: {
-                    user: id_user,
-                    estabelecimento: estabelecimento.id
-                },
-            })
-        );
+
+        setNavParams({
+            ...navParams,
+            user: id_user,
+            estabelecimento: estabelecimento.id
+        });
+
+        setLoading(false)
+
+        showDialog();
     };
 
     const handleCadastrar = async params => {
+        setLoading(true);
         try {
             let id_estabelecimento = null;
             let user_id = id_user;
@@ -124,20 +151,18 @@ const Cadastro = ({ route, navigation }) => {
                     imagem,
                     user_id,
                 });
-
-                idEstabelecimento = data.retorno;
-
+                id_estabelecimento = data.retorno;
                 const logUsuario = await login({ email: params.email, password: params.password });
+
                 await saveUser(logUsuario.data);
-                navigation.dispatch(
-                    CommonActions.navigate({
-                        name: 'Produtos',
-                        params: {
-                            user: user_id,
-                            estabelecimento: id_estabelecimento
-                        },
-                    })
-                );
+                setNavParams({
+                    ...navParams,
+                    user: user_id,
+                    estabelecimento: id_estabelecimento
+                });
+                setLoading(false);
+
+                showDialog();
             } else if (dataUser.status === 409) {
                 Alert.alert(
                     'Aviso',
@@ -145,6 +170,7 @@ const Cadastro = ({ route, navigation }) => {
                     [{ text: 'OK' }],
                     { cancelable: false },
                 );
+                setLoading(false)
             }
         } catch (e) {
         }
@@ -160,14 +186,14 @@ const Cadastro = ({ route, navigation }) => {
                     <TextField
                         label={"Razão Social"}
                         error={errors?.razao_social}
-                        placeholder={"Ex: BoraLa compras LTDA"}
+                        placeholder={"Informe a razão social"}
                         onChangeText={text => setValue('razao_social', text)}
                         defaultValue={getValues().razao_social || ''}
                     />
                     <TextField
                         label={"Nome Fantasia"}
                         error={errors?.nome_fantasia}
-                        placeholder={"Nome Fantasia"}
+                        placeholder={"Informe o nome fantasia"}
                         onChangeText={text => setValue('nome_fantasia', text)}
                         defaultValue={getValues().nome_fantasia || ''}
                     />
@@ -176,7 +202,7 @@ const Cadastro = ({ route, navigation }) => {
                         type={'cnpj'}
                         label={"Cnpj"}
                         error={errors?.cnpj}
-                        placeholder={"Cnpj"}
+                        placeholder={"Informe o CNPJ"}
                         includeRawValueInChangeText={true}
                         onChangeText={(mask, text) => setValue('cnpj', text)}
                         value={getValues().cnpj || ''}
@@ -185,7 +211,7 @@ const Cadastro = ({ route, navigation }) => {
                     <TextField
                         label={"Endereço"}
                         error={errors?.endereco}
-                        placeholder={"Endereço"}
+                        placeholder={"Informe o endereço"}
                         onChangeText={text => setValue('endereco', text)}
                         defaultValue={getValues().endereco || ''}
                     />
@@ -198,7 +224,7 @@ const Cadastro = ({ route, navigation }) => {
                             dddMask: '(51)'
                         }}
                         label={"Telefone"}
-                        placeholder={"DD XXXXX-XXXX"}
+                        placeholder={"Informe o telefone"}
                         error={errors?.telefone}
                         includeRawValueInChangeText={true}
                         onChangeText={(mask, text) => setValue('telefone', text)}
@@ -212,67 +238,88 @@ const Cadastro = ({ route, navigation }) => {
                         style={pickerSelectStyles}
                         onValueChange={text => setValue('categoria', text)}
                         items={arrayCategorias}
-                        value={estabelecimento ? getValues().id_categoria || '' : undefined}
+                        value={estabelecimento ? getValues().id_categoria : undefined}
                     />
 
                     {estabelecimento ?
                         null
                         : <>
                             <TextField
-                                label={"Email"}
+                                label={"E-mail"}
                                 error={errors?.email}
-                                placeholder={"email@gmail.com"}
+                                placeholder={"Informe o e-mail"}
                                 onChangeText={text => setValue('email', text)}
                             />
                             <TextField
                                 label={"Senha"}
                                 error={errors?.password}
-                                placeholder={"******"}
-                                onChangeText={text => setValue('password', text)}
-                                secureTextEntry
+                                placeholder={"Informe a senha"}
+                                onChangeText={password => { setValue('password', password); setPassword(password) }}
+                                value={password}
+                                innerRef={ref => ref && ref.setNativeProps({
+                                    style: {
+                                        fontFamily: 'Poppins-Regular',
+                                        fontSize: 15,
+                                    }
+                                })}
+                                secureTextEntry={true}
                             />
                         </>
                     }
 
                     <View style={styles.container}>
                         <Text style={styles.label}>Imagem</Text>
-                        <View style={[styles.anexo, styles.imagem]}>
-                            {imagem ?
-                                <Image
-                                    source={{ uri: `data:image/png;base64,${imagem}` }}
-                                    style={{ height: "100%", width: "100%" }}
-                                    onPress={() => navigation.navigate('Camera', {
-                                        route: 'Cadastro'
-                                    })}
-                                />
-                                :
-                                <Icon
-                                    style={styles.icon} name="camera" size={60} color='#555'
-                                    onPress={() => navigation.navigate('Camera', {
-                                        route: 'Cadastro'
-                                    })}
-                                />
-                            }
-                        </View>
+                        <TouchableOpacity onPress={() => navigation.navigate('Camera', {
+                            route: 'Cadastro'
+                        })}>
+                            <View style={styles.imagem}>
+                                {imagem ?
+                                    <Image
+                                        source={{ uri: `data:image/png;base64,${imagem}` }}
+                                        style={{
+                                            height: "100%", width: "100%", borderRadius: 8,
+                                        }}
+                                    />
+                                    :
+                                    <Icon
+                                        style={styles.icon} name="camera" size={60} color='#555'
+                                    />
+                                }
+                            </View>
+                        </TouchableOpacity>
                     </View>
 
-                    <GradientButton buttonStyle={styles.buttonEntrar}>
-                        <TouchableOpacity onPress={handleSubmit(handleSalvar)}>
+                    <TouchableOpacity disabled={loading} style={styles.button} onPress={handleSubmit(handleSalvar)}>
+                        {loading ? (
+                            <ActivityIndicator size="small" color="#FFF" />
+                        ) : (
                             <Text style={styles.registrar}>
                                 {estabelecimento ? 'Editar' : 'Cadastrar'}
                             </Text>
-                        </TouchableOpacity>
-                    </GradientButton>
-                </View >
+                        )}
+                    </TouchableOpacity>
+
+                    <Portal>
+                        <Dialog visible={visible} onDismiss={hideDialog}>
+                            <Dialog.Title>Aviso.</Dialog.Title>
+                            <Dialog.Content>
+                                <Paragraph>Estabelecimento {estabelecimento ? 'editado' : 'cadastrado'} com sucesso!</Paragraph>
+                            </Dialog.Content>
+                            <Dialog.Actions>
+                                <Button color={'rgba(15,136,147,1)'} onPress={navigationToNextScreen}>Ok</Button>
+                            </Dialog.Actions>
+                        </Dialog>
+                    </Portal>
+                </View>
             </ScrollView>
         </KeyboardAvoidingView >
     )
 };
 
-const TextField = ({ error, label, ...inputProps }) => (
+const TextField = ({ error, label, innerRef, ...inputProps }) => (
     <View style={styles.container}>
         <Text style={styles.label} >{label}</Text>
-        <TextInput
+        <TextInput ref={innerRef}
             style={[styles.input, !!error && styles.borderError]}
             {...inputProps}
         />
@@ -308,9 +355,10 @@ export default Cadastro;
 const styles = StyleSheet.create({
     mainContainer: {
         flex: 1,
-        marginTop: '5%',
+        paddingTop: '5%',
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: '#ddd',
     },
     label: {
         fontSize: 14,
@@ -323,14 +371,18 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         paddingHorizontal: 8,
         borderRadius: 8,
-        justifyContent: 'center'
+        justifyContent: 'center',
+        paddingTop: 0,
+        paddingBottom: 0,
+        fontFamily: 'Poppins-Regular',
     },
     imagem: {
         height: 150,
         fontSize: 15,
+        borderRadius: 8,
         backgroundColor: '#fff',
-        paddingHorizontal: 8,
-        borderRadius: 8
+        alignItems: 'center',
+        justifyContent: 'center'
     },
     label: {
         fontSize: 14,
@@ -342,10 +394,6 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginBottom: 10
     },
-    anexo: {
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
     borderError: {
         borderWidth: 1,
         borderColor: 'rgba(200,0,50,1)'
@@ -356,18 +404,19 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 5
     },
-    buttonEntrar: {
+    button: {
         padding: 10,
+        margin: 10,
         borderRadius: 10,
         width: 150,
         height: 55,
-        marginTop: 20,
-        color: 'black',
+        backgroundColor: 'rgba(15,136,147,1)',
         alignItems: 'center',
     },
     registrar: {
         fontFamily: 'Poppins-Regular',
-        fontSize: 20
+        fontSize: 20,
+        color: '#eee',
     },
 });
 
