@@ -1,6 +1,6 @@
-import React from 'react'
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator, HeaderBackButton } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { navigationRef } from './utils/asyncStorage';
 import Icon from 'react-native-vector-icons/Fontisto';
@@ -15,9 +15,10 @@ import Camera from './utils/camera';
 import Categorias from './pages/cliente/ListagemCategorias';
 import Estabelecimentos from './pages/cliente/ListagemEstabelecimentos';
 import Produtos from './pages/cliente/ListagemProdutos';
+import Detalhes from './pages/cliente/DetalhesProduto';
 import Menu from './pages/lojista/MenuLojista'
 import AuthLoading from './pages/AuthLoading';
-import ItemProduto from './utils/itemProduto';
+import { StatusBar } from 'react-native';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -55,16 +56,24 @@ function Tabs() {
                 },
             })}
             tabBarOptions={{
-                activeTintColor: 'black',
+                showLabel: false,
+                activeTintColor: 'rgba(15,136,147,1)',
                 inactiveTintColor: 'gray',
             }}
         >
             <Tab.Screen name="Categorias" component={Categorias} />
-            <Tab.Screen name="Estabelecimentos" component={Estabelecimentos} />
-            <Tab.Screen name="Produtos" component={Produtos} />
+            <Tab.Screen name="Estabelecimentos" component={Estabelecimentos} listeners={tabListaners} />
+            <Tab.Screen name="Produtos" component={Produtos} listeners={tabListaners} />
         </Tab.Navigator>
     );
 };
+
+const tabListaners = ({ navigation, route }) => ({
+    tabPress: () => navigation.navigate(route.name, {
+        id_categoria: undefined,
+        id_estabelecimento: undefined
+    })
+})
 
 function Stacks() {
     return (
@@ -72,16 +81,24 @@ function Stacks() {
             <Stack.Screen options={{ headerShown: false }} name="Cliente" component={Tabs} />
             <Stack.Screen options={{ headerShown: false }} name="AuthLoading" component={AuthLoading} />
             <Stack.Screen options={{ headerShown: false }} name="Home" component={Home} />
-            <Stack.Screen options={{ headerShown: false }} name="Login" component={Login} />
+            <Stack.Screen options={({ navigation }) => ({
+                headerTransparent: true,
+                headerTitle: false,
+                headerLeft: () => (
+                    <HeaderBackButton
+                        onPress={() => navigation.navigate('Home')}
+                    />
+                )
+            })} name="Login" component={Login} />
             <Stack.Screen options={{ headerBackground: () => (<Gradient />), }} name="Cadastro" component={Cadastro} />
             <Stack.Screen options={({ route, navigation }) => ({
                 headerLeft: () => null,
                 headerBackground: () => (<Gradient />),
                 headerRight: () => (<Menu navigation={navigation} route={route} />),
             })} name="Produtos" component={ManterProdutos} />
-            <Stack.Screen options={{ headerBackground: () => (<Gradient />), }} name="Cadastro Produto" component={CadastroProduto} />
-            <Stack.Screen options={{ headerShown: false }} name="Item Prroduto" component={ItemProduto} />
-            <Stack.Screen options={{ headerBackground: () => (<Gradient />), }} name="Camera" component={Camera} />
+            <Stack.Screen options={{ headerBackground: () => (<Gradient />) }} name="Cadastro Produto" component={CadastroProduto} />
+            <Stack.Screen options={{ headerBackground: () => (<Gradient />) }} name="Camera" component={Camera} />
+            <Stack.Screen options={{ headerBackground: () => (<Gradient />) }} name="Detalhes Produto" component={Detalhes} />
         </Stack.Navigator>
     );
 };
@@ -89,6 +106,9 @@ function Stacks() {
 export default function Routes() {
     return (
         <NavigationContainer ref={navigationRef}>
+            <StatusBar
+                backgroundColor="rgba(15,136,147,1)"
+            />
             <Stacks />
         </NavigationContainer>
     );

@@ -3,7 +3,8 @@ import {
     StyleSheet,
     View,
     FlatList,
-    Text
+    Text,
+    ActivityIndicator
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/core';
 import { getProdutosByEstabelecimentoId } from '../../services/produto';
@@ -13,14 +14,18 @@ import ItemProduto from '../../utils/itemProduto';
 export default function Produtos({ route, navigation }) {
     const estabelecimento = route.params?.estabelecimento;
     const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     const buscaProdutos = async () => {
+        setLoading(true);
         try {
             if (estabelecimento) {
                 const { data } = await getProdutosByEstabelecimentoId(estabelecimento);
                 setData(data);
             }
         } catch (exception) {
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -33,21 +38,25 @@ export default function Produtos({ route, navigation }) {
     const renderListItem = ({ item }) => <ItemProduto produto={item} carregaProdutos={buscaProdutos} navegar={navigation} />;
     return (
         <View style={styles.container}>
-
-            <FlatList
-                style={styles.listaProdutos}
-                data={data}
-                keyExtractor={item => item.id}
-                renderItem={renderListItem}
-                numColumns={2}
-                columnWrapperStyle={styles.flatList}
-                ListEmptyComponent={
-                    <View style={styles.message}>
-                        <Text>Nenhum produto cadastrado. </Text>
-                    </View>
-                }
-            />
-
+            {loading
+                ?
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <ActivityIndicator size="large" color="rgba(15,136,147,1)" />
+                </View>
+                :
+                <FlatList
+                    style={styles.listaProdutos}
+                    data={data}
+                    keyExtractor={item => item.id}
+                    renderItem={renderListItem}
+                    numColumns={2}
+                    ListEmptyComponent={
+                        <View style={styles.message}>
+                            <Text>Nenhum produto cadastrado. </Text>
+                        </View>
+                    }
+                />
+            }
             <FAB
                 label="Cadastrar"
                 style={styles.buttonCadastrar}
@@ -69,17 +78,14 @@ const styles = StyleSheet.create({
     listaProdutos: {
         flex: 1,
     },
-    flatList: {
-        flex: 1,
-        justifyContent: 'space-around'
-    },
     buttonCadastrar: {
         position: 'absolute',
         elevation: 3,
         margin: 16,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(15,136,147,1)'
+        backgroundColor: 'rgba(15,136,147,1)',
+        fontFamily: 'Poppins-Regular',
     },
     message: {
         alignItems: 'center',

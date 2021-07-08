@@ -14,7 +14,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CommonActions } from '@react-navigation/native';
 import { login } from '../services/usuario';
 import Gradient from '../utils/gradientFundo';
-import GradientButton from '../utils/gradientButton';
 import PropTypes from 'prop-types';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -23,17 +22,20 @@ import * as yup from 'yup';
 const fieldValidation = yup.object().shape({
     email: yup
         .string()
-        .required('O email não pode ser vazio.'),
+        .required('O email não pode ser vazio.')
+        .email('Digite um email válido')
+        .max(30, 'O email deve conter no máximo 30 díǵitos.'),
     password: yup
         .string()
         .required('A senha não pode ser vazia.')
-        .min(6, 'A senha deve conter pelo menos 6 dígitos'),
+        .min(4, 'A senha deve conter pelo menos 4 dígitos'),
 });
 
 export default function Login({ navigation }) {
     const [loading, setLoading] = useState(false);
+    const [password, setPassword] = useState(null);
     const [errorMessage, setErrorMessage] = useState(null);
-    const { register, setValue, handleSubmit, formState: { errors } } = useForm({
+    const { register, setValue, handleSubmit, formState: { errors }, getValues } = useForm({
         resolver: yupResolver(fieldValidation)
     });
 
@@ -57,20 +59,22 @@ export default function Login({ navigation }) {
             const response = await login(credentials);
             const user = response.data;
             await saveUser(user)
-
             navigation.dispatch(
-                CommonActions.navigate({
-                    name: 'Produtos',
-                    params: {
-                        user: user.user.id,
-                        estabelecimento: user.user.estabelecimento.id
-                    },
+                CommonActions.reset({
+                    index: 1,
+                    routes: [{
+                        name: 'Produtos',
+                        params: {
+                            user: user.user.id,
+                            estabelecimento: user.user.estabelecimento.id
+                        },
+                    }],
                 })
             );
             setLoading(false)
         } catch (err) {
             setLoading(false)
-            setErrorMessage('Usuário não existe')
+            setErrorMessage('E-mail e/ou senha incorretos.')
         }
     }
 
@@ -88,31 +92,32 @@ export default function Login({ navigation }) {
                 {!!errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
 
                 <TextField
-                    label={"Email"}
+                    label={"E-mail"}
                     error={errors?.email}
-                    placeholder="Digite seu email.."
+                    placeholder="Informe o e-mail."
                     onChangeText={email => setValue('email', email)}
                 />
 
                 <TextField
                     label={"Senha"}
                     error={errors?.password}
-                    placeholder="Senha..."
-                    onChangeText={password => setValue('password', password)}
+                    placeholder="Informe a senha."
+                    onChangeText={password => { setValue('password', password); setPassword(password) }}
+                    value={password}
+                    innerRef={ref => ref && ref.setNativeProps({ style: { fontFamily: 'Poppins-Regular' } })}
                     secureTextEntry={true}
                 />
 
-                <GradientButton buttonStyle={styles.buttonEntrar}>
-                    <TouchableOpacity onPress={handleSubmit(signIn)}>
-                        {loading ? (
-                            <ActivityIndicator size="small" color="#FFF" />
-                        ) : (
-                            <Text style={styles.entrar}>
-                                Entrar
-                            </Text>
-                        )}
-                    </TouchableOpacity>
-                </GradientButton>
+                <TouchableOpacity disabled={loading} style={styles.button} onPress={handleSubmit(signIn)}>
+                    {loading ? (
+                        <ActivityIndicator size="small" color="#FFF" />
+
+                    ) : (
+                        <Text style={styles.entrar}>
+                            Entrar
+                        </Text>
+                    )}
+                </TouchableOpacity>
 
                 <TouchableOpacity onPress={() => navigation.navigate('Cadastro')}>
                     <Text style={styles.registro}>Registre-se</Text>
@@ -122,10 +127,10 @@ export default function Login({ navigation }) {
     );
 }
 
-const TextField = ({ error, label, ...inputProps }) => (
+const TextField = ({ error, label, innerRef, ...inputProps }) => (
     <View style={styles.container}>
         <Text style={styles.label}>{label}</Text>
-        <TextInput
+        <TextInput ref={innerRef}
             style={[styles.input, !!error && styles.borderError]}
             {...inputProps}
         />
@@ -187,24 +192,29 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         borderRadius: 8,
         color: 'black',
+        paddingTop: 0,
+        paddingBottom: 0,
         fontFamily: 'Poppins-Regular',
     },
     entrar: {
         fontFamily: 'Poppins-Regular',
-        fontSize: 22
+        fontSize: 22,
+        color: "#eee",
     },
-    buttonEntrar: {
+    button: {
         padding: 10,
         borderRadius: 10,
         width: 150,
         height: 55,
         marginTop: 20,
-        color: 'black',
+        backgroundColor: 'rgba(15,136,147,1)',
         alignItems: 'center',
     },
     error: {
-        color: '#e37a7a',
+        color: 'red',
         textAlign: 'center',
+        fontSize: 14,
+        fontWeight: '700',
         marginTop: 10,
     },
     registro: {
