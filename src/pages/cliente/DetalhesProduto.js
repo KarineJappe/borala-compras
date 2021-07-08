@@ -5,6 +5,7 @@ import {
     Text,
     StyleSheet,
     Image,
+    ActivityIndicator
 } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -14,23 +15,27 @@ import { getEstabelecimentoById } from '../../services/estabelecimento';
 export default function Detlahes({ route }) {
     const produto = route.params?.produto;
     const id_estabelecimento = route.params?.id_estabelecimento;
-    const [mobileNumber, setMobileNumber] = useState('');
-    const [whatsAppMsg, setWhatsAppMsg] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const contatoWhatsApp = async () => {
+        setLoading(true);
         try {
             if (id_estabelecimento) {
                 const { data } = await getEstabelecimentoById(id_estabelecimento);
-                setWhatsAppMsg("Olá, tenho interesse no porduto " + produto.descricao + ". Ainda está disponível?");
-                setMobileNumber(data.telefone);
+
+                let url = 'whatsapp://send?text=' +
+                    "Olá, tenho interesse no item "
+                    + produto.descricao
+                    + " anunciado no app BoraLá. Ainda está disponível?"
+                    + '&phone=55'
+                    + data.telefone;
+                Linking.openURL(url);
             }
         } catch (e) {
 
         } finally {
-            let url = 'whatsapp://send?text=' + whatsAppMsg + '&phone=55' + mobileNumber;
-            Linking.openURL(url);
+            setLoading(false);
         }
-
     };
 
     return (
@@ -72,15 +77,20 @@ export default function Detlahes({ route }) {
                     Tem interesse no produto {produto.descricao}?{'\n'}
                     Entre em contato com o vendedor através do WhatsApp no botão abaixo.
                 </Text>
-                <TouchableOpacity style={styles.button} onPress={contatoWhatsApp}>
-                    <Text styles={styles.contato}>
-                        Contato
-                        <Text> </Text>
-                        <Icon
-                            name="whatsapp"
-                            size={20}
-                            color='green' />
-                    </Text>
+                <TouchableOpacity disabled={loading} style={styles.button} onPress={contatoWhatsApp}>
+                    {loading
+                        ?
+                        <ActivityIndicator size="small" color="green" />
+                        :
+                        <Text styles={styles.contato}>
+                            Contato
+                            <Text> </Text>
+                            <Icon
+                                name="whatsapp"
+                                size={20}
+                                color='green' />
+                        </Text>
+                    }
                 </TouchableOpacity>
             </View>
         </View>

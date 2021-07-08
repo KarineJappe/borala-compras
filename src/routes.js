@@ -15,6 +15,7 @@ import Camera from './utils/camera';
 import Categorias from './pages/cliente/ListagemCategorias';
 import Estabelecimentos from './pages/cliente/ListagemEstabelecimentos';
 import Produtos from './pages/cliente/ListagemProdutos';
+import Detalhes from './pages/cliente/DetalhesProduto';
 import Menu from './pages/lojista/MenuLojista'
 import AuthLoading from './pages/AuthLoading';
 import { StatusBar } from 'react-native';
@@ -61,11 +62,18 @@ function Tabs() {
             }}
         >
             <Tab.Screen name="Categorias" component={Categorias} />
-            <Tab.Screen name="Estabelecimentos" component={Estabelecimentos} />
-            <Tab.Screen name="Produtos" component={Produtos} />
+            <Tab.Screen name="Estabelecimentos" component={Estabelecimentos} listeners={tabListaners} />
+            <Tab.Screen name="Produtos" component={Produtos} listeners={tabListaners} />
         </Tab.Navigator>
     );
 };
+
+const tabListaners = ({ navigation, route }) => ({
+    tabPress: () => navigation.navigate(route.name, {
+        id_categoria: undefined,
+        id_estabelecimento: undefined
+    })
+})
 
 function Stacks() {
     return (
@@ -90,6 +98,7 @@ function Stacks() {
             })} name="Produtos" component={ManterProdutos} />
             <Stack.Screen options={{ headerBackground: () => (<Gradient />) }} name="Cadastro Produto" component={CadastroProduto} />
             <Stack.Screen options={{ headerBackground: () => (<Gradient />) }} name="Camera" component={Camera} />
+            <Stack.Screen options={{ headerBackground: () => (<Gradient />) }} name="Detalhes Produto" component={Detalhes} />
         </Stack.Navigator>
     );
 };

@@ -17,6 +17,8 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { TextInputMask } from 'react-native-masked-text';
+import { Portal, Button, Modal } from 'react-native-paper';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 const fieldValidation = yup.object().shape({
     descricao: yup
@@ -53,6 +55,7 @@ export default function CadastroProduto({ route, navigation }) {
     const id_user = route.params?.id_user || false;
     const base64 = route.params?.base64 || null;
     const [imagem, setImagem] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
 
     const { register, setValue, handleSubmit, formState: { errors }, getValues } = useForm({
         defaultValues: itemProduto || {},
@@ -71,7 +74,20 @@ export default function CadastroProduto({ route, navigation }) {
         register('observacao')
         register('preco')
         register('desconto')
-    }, [register])
+    }, [register]);
+
+    const escolherImagem = () => {
+        let options = {
+            title: 'Selecione uma imagem',
+            mediaType: 'photo',
+            includeBase64: true
+        };
+        launchImageLibrary(options, (response) => {
+            if (response && response.assets) {
+                setImagem(response.assets[0].base64);
+            }
+        });
+    };
 
     const handleCadastrar = async params => {
         setLoading(true);
@@ -165,10 +181,7 @@ export default function CadastroProduto({ route, navigation }) {
 
             <View style={styles.container}>
                 <Text style={styles.label}>Imagem</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Camera', {
-                    route: 'Cadastro Produto'
-                })}>
-
+                <TouchableOpacity onPress={() => setModalVisible(!modalVisible)}>
                     <View style={styles.imagem}>
                         {imagem ?
                             <Image
@@ -179,10 +192,10 @@ export default function CadastroProduto({ route, navigation }) {
                             />
                             :
                             <Icon
+                                style={styles.icon}
                                 name="camera"
-                                size={80}
+                                size={60}
                                 color='#555'
-
                             />
                         }
                     </View>
@@ -198,6 +211,46 @@ export default function CadastroProduto({ route, navigation }) {
                     </Text>
                 )}
             </TouchableOpacity>
+
+            <Portal>
+                <Modal
+                    visible={modalVisible}
+                    onDismiss={() => setModalVisible(!modalVisible)} style={styles.modalContainer} contentContainerStyle={styles.modalContent}>
+                    <View style={styles.modalOpcao}>
+                        <TouchableOpacity onPress={() => {
+                            escolherImagem();
+                            setModalVisible(!modalVisible);
+                        }}>
+                            <Icon
+                                style={styles.icon}
+                                name="photo"
+                                size={60}
+                                color='#555'
+                            />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => {
+                            navigation.navigate('Camera', {
+                                route: 'Cadastro Produto'
+                            });
+                            setModalVisible(!modalVisible);
+                        }}>
+                            <Icon
+                                style={styles.icon}
+                                name="camera"
+                                size={60}
+                                color='#555'
+                            />
+                        </TouchableOpacity>
+                    </View>
+                    <View style={styles.modalAcao}>
+                        <Button
+                            onPress={() => setModalVisible(!modalVisible)}
+                        >
+                            <Text style={{ color: 'rgba(15,136,147,1)' }}>Fechar</Text>
+                        </Button>
+                    </View>
+                </Modal>
+            </Portal>
 
         </View>
     );
@@ -287,5 +340,26 @@ const styles = StyleSheet.create({
         height: 55,
         backgroundColor: 'rgba(15,136,147,1)',
         alignItems: 'center',
+    },
+    modalContent: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'white',
+        paddingHorizontal: 100,
+        borderRadius: 10
+    },
+    modalContainer: {
+        flex: 1,
+        height: '50%',
+        alignItems: 'center',
+        marginTop: '50%',
+    },
+    modalOpcao: {
+        flex: 1,
+        justifyContent: 'space-evenly'
+    },
+    modalAcao: {
+        marginVertical: 20
     }
 });

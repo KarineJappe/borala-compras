@@ -116,6 +116,6 @@ const styles = StyleSheet.create({
     },
     message: {
         alignItems: 'center',
-        marginTop: '50%'
+        marginTop: '80%'
     },
 });

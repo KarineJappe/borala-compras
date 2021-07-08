@@ -23,7 +23,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { createValidationSchema, editValidationSchema } from './validationSchema';
 import RNPickerSelect from 'react-native-picker-select';
 import { TextInputMask } from 'react-native-masked-text';
-import { Dialog, Paragraph, Portal, Button } from 'react-native-paper';
+import { Dialog, Paragraph, Portal, Button, Modal } from 'react-native-paper';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 async function saveUser(user) {
     await AsyncStorage.setItem('@App:token', JSON.stringify(user))
@@ -36,6 +37,7 @@ const Cadastro = ({ route, navigation }) => {
     const [visible, setVisible] = useState(false);
     const [password, setPassword] = useState(null);
     const [navParams, setNavParams] = useState({});
+    const [modalVisible, setModalVisible] = useState(false);
 
     const estabelecimento = route.params?.estabelecimento || false;
     const { id_user, base64 } = route.params || false;
@@ -67,7 +69,20 @@ const Cadastro = ({ route, navigation }) => {
         register('categoria')
         register('email')
         register('password')
-    }, [register])
+    }, [register]);
+
+    const escolherImagem = () => {
+        let options = {
+            title: 'Selecione uma imagem',
+            mediaType: 'photo',
+            includeBase64: true
+        };
+        launchImageLibrary(options, (response) => {
+            if (response && response.assets) {
+                setImagem(response.assets[0].base64);
+            }
+        });
+    };
 
     const loadCategorias = async () => {
         const { data } = await getCategoria();
@@ -269,9 +284,7 @@ const Cadastro = ({ route, navigation }) => {
 
                     <View style={styles.container}>
                         <Text style={styles.label}>Imagem</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Camera', {
-                            route: 'Cadastro'
-                        })}>
+                        <TouchableOpacity onPress={() => setModalVisible(!modalVisible)}>
                             <View style={styles.imagem}>
                                 {imagem ?
                                     <Image
@@ -313,6 +326,47 @@ const Cadastro = ({ route, navigation }) => {
                             </Dialog.Actions>
                         </Dialog>
                     </Portal>
+
+                    <Portal>
+                        <Modal
+                            visible={modalVisible}
+                            onDismiss={() => setModalVisible(!modalVisible)} style={styles.modalContainer} contentContainerStyle={styles.modalContent}>
+                            <View style={styles.modalOpcao}>
+                                <TouchableOpacity onPress={() => {
+                                    escolherImagem();
+                                    setModalVisible(!modalVisible);
+                                }}>
+                                    <Icon
+                                        style={styles.icon}
+                                        name="photo"
+                                        size={60}
+                                        color='#555'
+                                    />
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => {
+                                    navigation.navigate('Camera', {
+                                        route: 'Cadastro'
+                                    });
+                                    setModalVisible(!modalVisible);
+                                }}>
+                                    <Icon
+                                        style={styles.icon}
+                                        name="camera"
+                                        size={60}
+                                        color='#555'
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                            <View style={styles.modalAcao}>
+                                <Button
+                                    onPress={() => setModalVisible(!modalVisible)}
+                                >
+                                    <Text style={{ color: 'rgba(15,136,147,1)' }}>Fechar</Text>
+                                </Button>
+                            </View>
+                        </Modal>
+                    </Portal>
+
                 </View>
             </ScrollView>
         </KeyboardAvoidingView >
@@ -421,6 +475,27 @@ const styles = StyleSheet.create({
         fontSize: 20,
         color: '#eee',
     },
+    modalContent: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'white',
+        paddingHorizontal: 100,
+        borderRadius: 10
+    },
+    modalContainer: {
+        flex: 1,
+        height: '50%',
+        alignItems: 'center',
+        marginTop: '50%',
+    },
+    modalOpcao: {
+        flex: 1,
+        justifyContent: 'space-evenly'
+    },
+    modalAcao: {
+        marginVertical: 20
+    }
 });
 
 const pickerSelectStyles = StyleSheet.create({
