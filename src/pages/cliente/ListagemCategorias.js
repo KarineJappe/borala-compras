@@ -4,28 +4,35 @@ import {
     Text,
     View,
     Image,
-    StatusBar,
     SafeAreaView,
     FlatList,
-    TouchableOpacity
+    TouchableOpacity,
+    ActivityIndicator
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { getCategoria } from '../../services/categoria';
 
 export default function Categorias({ navigation }) {
+    const [loading, setLoading] = useState(false);
     const [data, setData] = useState([]);
 
     useEffect(async () => {
-        const { data } = await getCategoria();
-
-        setData(data.data);
+        setLoading(true);
+        try {
+            const { data } = await getCategoria();
+            setData(data.data);
+        } catch (e) {
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
     const Item = ({ data }) => (
         <TouchableOpacity
             style={styles.item}
             onPress={() => navigation.navigate('Estabelecimentos', {
-                id_categoria: data.id
+                id_categoria: data.id,
+                categoria: data.descricao
             })}
         >
             <View style={styles.anexo}>
@@ -54,16 +61,23 @@ export default function Categorias({ navigation }) {
 
     return (
         <SafeAreaView style={styles.container}>
-            <FlatList
-                data={data}
-                renderItem={renderItem}
-                keyExtractor={item => item.id}
-                ListEmptyComponent={
-                    <View style={styles.message}>
-                        <Text>Nenhuma categoria cadastrada. </Text>
-                    </View>
-                }
-            />
+            {loading
+                ?
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <ActivityIndicator size="large" color="rgba(15,136,147,1)" />
+                </View>
+                :
+                <FlatList
+                    data={data}
+                    renderItem={renderItem}
+                    keyExtractor={item => item.id}
+                    ListEmptyComponent={
+                        <View style={styles.message}>
+                            <Text>Nenhuma categoria cadastrada. </Text>
+                        </View>
+                    }
+                />
+            }
         </SafeAreaView>
     );
 }
